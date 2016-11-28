@@ -1,4 +1,4 @@
-//team Ben, Erika Devin, Alex
+//team Ben, Erika Devin, Alex 11/28
 (
 var height = 632;
 var width = 632;
