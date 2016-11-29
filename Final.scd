@@ -97,17 +97,20 @@ v.drawFunc = {
 
 			Pen.strokeColor = Color.white;
 			Pen.width = 4;
-			Pen.moveTo(currCell[\x] @ currCell[\y] - 10);
-			Pen.lineTo(currCell[\x] @ currCell[\y]);
-			Pen.lineTo(currCell[\x] @ (currCell[\y] + 12));
+			Pen.moveTo((currCell[\x] - 9) @ (currCell[\y] - 13));
+			Pen.lineTo((currCell[\x] - 1) @ currCell[\y]);
+			Pen.lineTo((currCell[\x] - 1) @ (currCell[\y] + 12));
+			Pen.perform([\stroke]);
+
+			Pen.width = 2;
 			Pen.moveTo(currCell[\x] @ currCell[\y]);
-			Pen.lineTo((currCell[\x] + 10) @ (currCell[\y] - 10));
-			Pen.moveTo((currCell[\x] + 7) @ (currCell[\y] - 13));
-			Pen.lineTo((currCell[\x] + 13) @ (currCell[\y] - 7));
-			Pen.moveTo((currCell[\x] - 5) @ (currCell[\y] + 12));
-			Pen.lineTo((currCell[\x] + 5) @ (currCell[\y] + 12));
-			Pen.moveTo((currCell[\x] - 7) @ (currCell[\y] - 13));
-			Pen.lineTo((currCell[\x] - 13) @ (currCell[\y] - 7));
+			Pen.lineTo((currCell[\x] + 9) @ (currCell[\y] - 13));
+			Pen.moveTo((currCell[\x] - 6) @ (currCell[\y] + 12));
+			Pen.lineTo((currCell[\x] + 4) @ (currCell[\y] + 12));
+			Pen.moveTo((currCell[\x] + 3) @ (currCell[\y] - 13));
+			Pen.lineTo((currCell[\x] + 13) @ (currCell[\y] - 13));
+			Pen.moveTo((currCell[\x] - 3) @ (currCell[\y] - 13));
+			Pen.lineTo((currCell[\x] - 13) @ (currCell[\y] - 13));
 			Pen.perform([\stroke]);
 
 			track = track + 1;
