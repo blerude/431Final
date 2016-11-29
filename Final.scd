@@ -1,4 +1,4 @@
-//team Ben, Erika Devin, Alex 11/28/16 :D
+//team Ben, Erika, Devin, Alex 11/28/16 :D
 (
 //GENERATING BASS
 //Dev
@@ -41,17 +41,19 @@ Speeds up every time the number of attracting points doubles
 //GUI STUFF
 var height = 632;
 var width = 632;
+var height = 380;
+var width = 380;
 var initialSize = 20;
-var placements = [22, 64, 106, 148, 190, 232, 274, 316, 358, 400, 442, 484, 526, 568, 610];
+var placements = [22, 64, 106, 148, 190, 232, 274, 316, 358];
 var harmony, melody, bass, percussion;
-var x1 = placements.choose;
-var x2 = placements.choose;
-var x3 = placements.choose;
-var x4 = placements.choose;
-var y1 = placements.choose;
-var y2 = placements.choose;
-var y3 = placements.choose;
-var y4 = placements.choose;
+var x1 = placements[~hxval - 1];
+var x2 = placements[~mxval - 1];
+var x3 = placements[~bxval - 1];
+var x4 = placements[~pxval - 1];
+var y1 = placements[~hyval - 1];
+var y2 = placements[~myval - 1];
+var y3 = placements[~byval - 1];
+var y4 = placements[~pyval - 1];
 var c1 = Color.rand;
 var c2 = Color.rand;
 var c3 = Color.rand;
@@ -136,17 +138,20 @@ v.drawFunc = {
 
 			Pen.strokeColor = Color.white;
 			Pen.width = 4;
-			Pen.moveTo(currCell[\x] @ currCell[\y] - 10);
-			Pen.lineTo(currCell[\x] @ currCell[\y]);
-			Pen.lineTo(currCell[\x] @ (currCell[\y] + 12));
+			Pen.moveTo((currCell[\x] - 9) @ (currCell[\y] - 13));
+			Pen.lineTo((currCell[\x] - 1) @ currCell[\y]);
+			Pen.lineTo((currCell[\x] - 1) @ (currCell[\y] + 12));
+			Pen.perform([\stroke]);
+
+			Pen.width = 2;
 			Pen.moveTo(currCell[\x] @ currCell[\y]);
-			Pen.lineTo((currCell[\x] + 10) @ (currCell[\y] - 10));
-			Pen.moveTo((currCell[\x] + 7) @ (currCell[\y] - 13));
-			Pen.lineTo((currCell[\x] + 13) @ (currCell[\y] - 7));
-			Pen.moveTo((currCell[\x] - 5) @ (currCell[\y] + 12));
-			Pen.lineTo((currCell[\x] + 5) @ (currCell[\y] + 12));
-			Pen.moveTo((currCell[\x] - 7) @ (currCell[\y] - 13));
-			Pen.lineTo((currCell[\x] - 13) @ (currCell[\y] - 7));
+			Pen.lineTo((currCell[\x] + 9) @ (currCell[\y] - 13));
+			Pen.moveTo((currCell[\x] - 6) @ (currCell[\y] + 12));
+			Pen.lineTo((currCell[\x] + 4) @ (currCell[\y] + 12));
+			Pen.moveTo((currCell[\x] + 3) @ (currCell[\y] - 13));
+			Pen.lineTo((currCell[\x] + 13) @ (currCell[\y] - 13));
+			Pen.moveTo((currCell[\x] - 3) @ (currCell[\y] - 13));
+			Pen.lineTo((currCell[\x] - 13) @ (currCell[\y] - 13));
 			Pen.perform([\stroke]);
 
 			track = track + 1;
@@ -160,9 +165,62 @@ v.drawFunc = {
 
 (
 // Create interactive console for users to select initial cell configurations
-x = Window("Placement Selections", Rect(0, 0, 420, 320), false).front;
+x = Window.new("Placement Selections", Rect(0, 0, 420, 370), false).front;
 
-StaticText.new(x, Rect(120,0,180,30)).string_("Make Placement Selections");
+StaticText.new(x, Rect(85,0,250,30)).string_("MAKE CELL PLACEMENT SELECTIONS");
+StaticText.new(x, Rect(135,0,150,80)).string_("To select a starting cell,");
+StaticText.new(x, Rect(40,0,340,110)).string_("enter a number within the 1-9 range into the text box.");
+StaticText.new(x, Rect(135,0,150,140)).string_("If the input is not valid,");
+StaticText.new(x, Rect(90,0,240,170)).string_("one will be randomly selected for you.");
+StaticText.new(x, Rect(80,0,260,210)).string_("NOTE: Coordinate pairs must be distinct!");
+
+StaticText.new(x, Rect(20,0,180,270)).string_("Harmony:");
+StaticText.new(x, Rect(110,0,50,270)).string_("X Value:");
+~hx = TextField(x,Rect(170,120,50,30));
+StaticText.new(x, Rect(250,0,50,270)).string_("Y Value:");
+~hy = TextField(x,Rect(310,120,50,30));
+
+StaticText.new(x, Rect(20,0,180,370)).string_("Melody:");
+StaticText.new(x, Rect(110,0,50,370)).string_("X Value:");
+~mx = TextField(x,Rect(170,170,50,30));
+StaticText.new(x, Rect(250,0,50,370)).string_("Y Value:");
+~my = TextField(x,Rect(310,170,50,30));
+
+StaticText.new(x, Rect(20,0,180,470)).string_("Bass:");
+StaticText.new(x, Rect(110,0,50,470)).string_("X Value:");
+~bx = TextField(x,Rect(170,220,50,30));
+StaticText.new(x, Rect(250,0,50,470)).string_("Y Value:");
+~by = TextField(x,Rect(310,220,50,30));
+
+StaticText.new(x, Rect(20,0,180,570)).string_("Percussion:");
+StaticText.new(x, Rect(110,0,50,570)).string_("X Value:");
+~px = TextField(x,Rect(170,270,50,30));
+StaticText.new(x, Rect(250,0,50,570)).string_("Y Value:");
+~py = TextField(x,Rect(310,270,50,30));
+
+b = Button.new(x,Rect(155,320,90,30))
+.states_([["DONE"]])
+.action_(  {
+	if ((~hx.value.asInteger > 0) && (~hx.value.asInteger < 16), { ~hxval = ~hx.value.asInteger }, { ~hxval = rrand(1, 9) } );
+	if ((~hy.value.asInteger > 0) && (~hy.value.asInteger < 16), { ~hyval = ~hy.value.asInteger }, { ~hyval = rrand(1, 9) } );
+	if ((~mx.value.asInteger > 0) && (~mx.value.asInteger < 16), { ~mxval = ~mx.value.asInteger }, { ~mxval = rrand(1, 9) } );
+	if ((~my.value.asInteger > 0) && (~my.value.asInteger < 16), { ~myval = ~my.value.asInteger }, { ~myval = rrand(1, 9) } );
+	if ((~bx.value.asInteger > 0) && (~bx.value.asInteger < 16), { ~bxval = ~bx.value.asInteger }, { ~bxval = rrand(1, 9) } );
+	if ((~by.value.asInteger > 0) && (~by.value.asInteger < 16), { ~byval = ~by.value.asInteger }, { ~byval = rrand(1, 9) } );
+	if ((~px.value.asInteger > 0) && (~px.value.asInteger < 16), { ~pxval = ~px.value.asInteger }, { ~pxval = rrand(1, 9) } );
+	if ((~py.value.asInteger > 0) && (~py.value.asInteger < 16), { ~pyval = ~py.value.asInteger }, { ~pyval = rrand(1, 9) } );
+
+	while ({ (~mxval == ~hxval) && (~myval == ~hyval) }, { ~mxval = rrand(1, 9); ~myval = rrand(1, 9) });
+	while ({ ((~bxval == ~hxval) && (~byval == ~hyval)) || ((~bxval == ~mxval) && (~byval == ~myval)) },
+		{ ~bxval = rrand(1, 9); ~byval = rrand(1, 9) });
+	while ({ ((~pxval == ~hxval) && (~pyval == ~hyval))  || ((~pxval == ~mxval) && (~pyval == ~myval)) ||
+		((~pxval == ~bxval) && (~pyval == ~byval)) }, { ~pxval = rrand(1, 9); ~pyval = rrand(1, 9) });
+
+	Window.closeAll;
+});
+)
+
+/*StaticText.new(x, Rect(120,0,180,30)).string_("Make Placement Selections");
 StaticText.new(x, Rect(135,0,150,80)).string_("To select a starting cell, ");
 StaticText.new(x, Rect(65,0,290,110)).string_("enter a within the 1-15 range into the text box");
 StaticText.new(x, Rect(200,0,20,140)).string_("OR");
@@ -194,6 +252,5 @@ h.string = "Percussion:";
 TextField(x,Rect(100,260,50,30));
 Button.new(x,Rect(160,260,90,30)).states_([["Randomize X"]]);
 TextField(x,Rect(260,260,50,30));
-Button.new(x,Rect(320,260,90,30)).states_([["Randomize Y"]]);
+Button.new(x,Rect(320,260,90,30)).states_([["Randomize Y"]]);*/
 
-)
