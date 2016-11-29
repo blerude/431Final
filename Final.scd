@@ -1,9 +1,9 @@
 //team Ben, Erika Devin, Alex 11/28/16 :D
 (
-var height = 632;
-var width = 632;
+var height = 380;
+var width = 380;
 var initialSize = 20;
-var placements = [22, 64, 106, 148, 190, 232, 274, 316, 358, 400, 442, 484, 526, 568, 610];
+var placements = [22, 64, 106, 148, 190, 232, 274, 316, 358];
 var harmony, melody, bass, percussion;
 var x1 = placements.choose;
 var x2 = placements.choose;
