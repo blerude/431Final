@@ -1,5 +1,44 @@
 //team Ben, Erika Devin, Alex 11/28/16 :D
 (
+//GENERATING BASS
+//Dev
+
+//Synthdef:
+SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15,
+        detune = 1.005, preamp = 4|
+    var    sig,
+        env = Env.adsr(0.01, 0.3, 0.4, 0.1);
+    freq = Lag.kr(freq, slideTime);
+    sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp
+        * EnvGen.kr(env, gate, doneAction: 2);
+    sig = LPF.ar(sig, ffreq);
+    Out.ar(0, sig ! 2)
+}).add;
+
+/*Changing tempo of bass based on the bifurcations of the logistic map.
+Speeds up every time the number of attracting points doubles
+
+0-1: none
+1-3: 1
+3-3.44 (1 + sqrt(6)): 2
+3.44-3.544: 4
+3.544-3.596: 8
+3.596-3.626: chaos
+3.626-3.63: 6
+3.63-3.633:12
+3.633-3.738: chaos
+3.738-3.741: 5
+3.741-3.744:10
+3.744-3.828: chaos
+3.828-3.841: 3
+3.841-3.848: 6
+3.848-3.857: 12/devolve into chaos
+3.857-4: chaos
+*/
+
+
+
+//GUI STUFF
 var height = 632;
 var width = 632;
 var initialSize = 20;
