@@ -83,7 +83,7 @@ b = Button.new(x,Rect(155,320,90,30))
 
 (
 //GUI STUFF
-var hPitch =[ 2, 3, 4, 5, 6]; // placeholder pitch array for the harmony line
+var hPitch =[ 2, 3, 8, 5, 6]; // placeholder pitch array for the harmony line
 var hCount =0; // placeholder count variable for testing
 
 var height = 380; // height of the grid
@@ -143,7 +143,7 @@ w = Window("Grid", Rect(
 v = UserView(w, Rect(0, 0, width, height));
 v.background = Color.grey;
 v.animate = true;
-v.frameRate = 1; // determines how many times a second the grid is rewritten; affects cell movements
+v.frameRate = 60; // determines how many times a second the grid is rewritten; affects cell movements
 
 // This function is called frameRate times per second
 v.drawFunc = {
@@ -208,6 +208,8 @@ v.drawFunc = {
 		});
 
 		//harmony changes [allow for movement of cells!]
+
+		// this should only be called when duration changes
 		case
 		{ hCount == 0 }  {}
 		{ hPitch[hCount - 1] < hPitch[hCount] } { x1 = coords[ (coords.indexOf(x1) + 1) % 9 ] }
@@ -216,13 +218,12 @@ v.drawFunc = {
 		hCount = (hCount +1) % hPitch.size;
 
 		// TODO:
-		// 1. deal with framerate so it changes every time the note changes
-		// 2. apply to bass and percussion, melody
-		// 3. incorporate joystick
-		// 4. figure out 4 directional movement
-		// 5. collisions!
-		// 6. trace the path!
-
+		// 1. deal with framerate so it changes every time the note changes (ben)
+		// 2. apply to bass and percussion (just moving back and forth), melody (erika)
+		// 3. incorporate joystick (erika) erika i have ideas for this!!!
+		// 4. figure out 4 directional movement (talk about this)
+		// 5. collisions! (talk about this)
+		// 6. trace the path! (ben)
 	};
 };
 )
@@ -364,39 +365,3 @@ Speeds up every time the number of attracting points doubles
 
 ~playBass.value;
 )
-
-
-/*StaticText.new(x, Rect(120,0,180,30)).string_("Make Placement Selections");
-StaticText.new(x, Rect(135,0,150,80)).string_("To select a starting cell, ");
-StaticText.new(x, Rect(65,0,290,110)).string_("enter a within the 1-15 range into the text box");
-StaticText.new(x, Rect(200,0,20,140)).string_("OR");
-StaticText.new(x, Rect(35,0,350,170)).string_("select 'Randomize' to let the computer decide the value.");
-
-h = StaticText.new(x, Rect(20,0,180,250));
-h.string = "Harmony:";
-TextField(x,Rect(100,110,50,30));
-Button.new(x,Rect(160,110,90,30)).states_([["Randomize X"]]);
-TextField(x,Rect(260,110,50,30));
-Button.new(x,Rect(320,110,90,30)).states_([["Randomize Y"]]);
-
-m = StaticText.new(x, Rect(20,0,180,350));
-m.string = "Melody:";
-TextField(x,Rect(100,160,50,30));
-Button.new(x,Rect(160,160,90,30)).states_([["Randomize X"]]);
-TextField(x,Rect(260,160,50,30));
-Button.new(x,Rect(320,160,90,30)).states_([["Randomize Y"]]);
-
-h = StaticText.new(x, Rect(20,0,180,450));
-h.string = "Bass:";
-TextField(x,Rect(100,210,50,30));
-Button.new(x,Rect(160,210,90,30)).states_([["Randomize X"]]);
-TextField(x,Rect(260,210,50,30));
-Button.new(x,Rect(320,210,90,30)).states_([["Randomize Y"]]);
-
-h = StaticText.new(x, Rect(20,0,180,550));
-h.string = "Percussion:";
-TextField(x,Rect(100,260,50,30));
-Button.new(x,Rect(160,260,90,30)).states_([["Randomize X"]]);
-TextField(x,Rect(260,260,50,30));
-Button.new(x,Rect(320,260,90,30)).states_([["Randomize Y"]]);*/
-
