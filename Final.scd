@@ -59,6 +59,9 @@ b = Button.new(x,Rect(155,320,90,30))
 
 (
 //GUI STUFF
+var hPitch =[ 2, 3, 4, 5, 6];
+var hCount =0;
+
 var height = 380;
 var width = 380;
 var initialSize = 20;
@@ -114,7 +117,7 @@ w = Window("Grid", Rect(
 v = UserView(w, Rect(0, 0, width, height));
 v.background = Color.grey;
 v.animate = true;
-v.frameRate = 60;
+v.frameRate = 1;
 
 v.drawFunc = {
 
@@ -174,10 +177,26 @@ v.drawFunc = {
 
 			track = track + 1;
 		});
+
+
+	//harmony changes
+	case
+		{ hCount == 0 }  {}
+		{ hPitch[hCount - 1] < hPitch[hCount] } { x1 = placements[ (placements.indexOf(x1) + 1) % 9 ] }
+		{ x1 = placements[ (placements.indexOf(x1) - 1) % 9 ] };
+
+		hCount = (hCount +1) % hPitch.size;
+
+		// TODO:
+		// 1. deal with framerate so it changes every time the note changes
+		// 2. apply to bass and percussion, melody
+		// 3. joystick
+
 	};
 };
 )
 
+Window.closeAll;
 //CONTROLLING INTERACTION WITH JOYSTICK BASS
 //Dev
 HID.findAvailable;
@@ -252,6 +271,7 @@ SynthDef(\hid, {|trig, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, joyx=400, 
 x = Synth(\hid);
 x.free;
 
+//trigger adds beats to percussion
 
 
 
