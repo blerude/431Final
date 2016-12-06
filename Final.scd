@@ -1,9 +1,20 @@
 //team Ben, Erika, Devin, Alex 11/28/16 :D
 
+
+// *****Alright, some comments to hopefully clarify what's going on:
+
+
+// This block of code creates the console for selecting the 4 track's cells' initial coordinates on the grid
+// It should be executed first in order to get those locations, before the later actual interface code block
+//   is run. Users can input the row and column of each cell by entering a number between 1 and 9. If they
+//   enter anything other than that (numbers outside the range, non-numeric characters, or leave it blank),
+//   a random number will be chosen for them. Once they press the 'DONE' button, the console closes and
+//   the responses are assigned to variables.
 (
 // Create interactive console for users to select initial cell configurations
 x = Window.new("Placement Selections", Rect(0, 0, 420, 370), false).front;
 
+// These commands create the text blocks on the console that instruct users.
 StaticText.new(x, Rect(85,0,250,30)).string_("MAKE CELL PLACEMENT SELECTIONS");
 StaticText.new(x, Rect(135,0,150,80)).string_("To select a starting cell,");
 StaticText.new(x, Rect(40,0,340,110)).string_("enter a number within the 1-9 range into the text box.");
@@ -11,6 +22,8 @@ StaticText.new(x, Rect(135,0,150,140)).string_("If the input is not valid,");
 StaticText.new(x, Rect(90,0,240,170)).string_("one will be randomly selected for you.");
 StaticText.new(x, Rect(80,0,260,210)).string_("NOTE: Coordinate pairs must be distinct!");
 
+// Harmony, melody, bass, and percussion fields are below. The text fields are global variables so that the
+//   values entered inside can be accessed from the interface code block below.
 StaticText.new(x, Rect(20,0,180,270)).string_("Harmony:");
 StaticText.new(x, Rect(110,0,50,270)).string_("X Value:");
 ~hx = TextField(x,Rect(170,120,50,30));
@@ -35,61 +48,74 @@ StaticText.new(x, Rect(110,0,50,570)).string_("X Value:");
 StaticText.new(x, Rect(250,0,50,570)).string_("Y Value:");
 ~py = TextField(x,Rect(310,270,50,30));
 
+// This button locks the responses in by saving the entered text from each box to global variables
 b = Button.new(x,Rect(155,320,90,30))
 .states_([["DONE"]])
 .action_(  {
-	if ((~hx.value.asInteger > 0) && (~hx.value.asInteger < 16), { ~hxval = ~hx.value.asInteger }, { ~hxval = rrand(1, 9) } );
-	if ((~hy.value.asInteger > 0) && (~hy.value.asInteger < 16), { ~hyval = ~hy.value.asInteger }, { ~hyval = rrand(1, 9) } );
-	if ((~mx.value.asInteger > 0) && (~mx.value.asInteger < 16), { ~mxval = ~mx.value.asInteger }, { ~mxval = rrand(1, 9) } );
-	if ((~my.value.asInteger > 0) && (~my.value.asInteger < 16), { ~myval = ~my.value.asInteger }, { ~myval = rrand(1, 9) } );
-	if ((~bx.value.asInteger > 0) && (~bx.value.asInteger < 16), { ~bxval = ~bx.value.asInteger }, { ~bxval = rrand(1, 9) } );
-	if ((~by.value.asInteger > 0) && (~by.value.asInteger < 16), { ~byval = ~by.value.asInteger }, { ~byval = rrand(1, 9) } );
-	if ((~px.value.asInteger > 0) && (~px.value.asInteger < 16), { ~pxval = ~px.value.asInteger }, { ~pxval = rrand(1, 9) } );
-	if ((~py.value.asInteger > 0) && (~py.value.asInteger < 16), { ~pyval = ~py.value.asInteger }, { ~pyval = rrand(1, 9) } );
+	// Save responses to x and y variables for each track; if response is invalid, choose random entry
+	if ((~hx.value.asInteger > 0) && (~hx.value.asInteger < 16),
+		{ ~hxval = ~hx.value.asInteger }, { ~hxval = rrand(1, 9) } );
+	if ((~hy.value.asInteger > 0) && (~hy.value.asInteger < 16),
+		{ ~hyval = ~hy.value.asInteger }, { ~hyval = rrand(1, 9) } );
+	if ((~mx.value.asInteger > 0) && (~mx.value.asInteger < 16),
+		{ ~mxval = ~mx.value.asInteger }, { ~mxval = rrand(1, 9) } );
+	if ((~my.value.asInteger > 0) && (~my.value.asInteger < 16),
+		{ ~myval = ~my.value.asInteger }, { ~myval = rrand(1, 9) } );
+	if ((~bx.value.asInteger > 0) && (~bx.value.asInteger < 16),
+		{ ~bxval = ~bx.value.asInteger }, { ~bxval = rrand(1, 9) } );
+	if ((~by.value.asInteger > 0) && (~by.value.asInteger < 16),
+		{ ~byval = ~by.value.asInteger }, { ~byval = rrand(1, 9) } );
+	if ((~px.value.asInteger > 0) && (~px.value.asInteger < 16),
+		{ ~pxval = ~px.value.asInteger }, { ~pxval = rrand(1, 9) } );
+	if ((~py.value.asInteger > 0) && (~py.value.asInteger < 16),
+		{ ~pyval = ~py.value.asInteger }, { ~pyval = rrand(1, 9) } );
 
+	// This protects against the possibility that cells are assigned the same coordinates
 	while ({ (~mxval == ~hxval) && (~myval == ~hyval) }, { ~mxval = rrand(1, 9); ~myval = rrand(1, 9) });
 	while ({ ((~bxval == ~hxval) && (~byval == ~hyval)) || ((~bxval == ~mxval) && (~byval == ~myval)) },
 		{ ~bxval = rrand(1, 9); ~byval = rrand(1, 9) });
 	while ({ ((~pxval == ~hxval) && (~pyval == ~hyval))  || ((~pxval == ~mxval) && (~pyval == ~myval)) ||
 		((~pxval == ~bxval) && (~pyval == ~byval)) }, { ~pxval = rrand(1, 9); ~pyval = rrand(1, 9) });
 
-	Window.closeAll;
+	Window.closeAll; // Close window upon exit!
 });
 )
 
 (
 //GUI STUFF
-var hPitch =[ 2, 3, 4, 5, 6];
-var hCount =0;
+var hPitch =[ 2, 3, 4, 5, 6]; // placeholder pitch array for the harmony line
+var hCount =0; // placeholder count variable for testing
 
-var height = 380;
-var width = 380;
-var initialSize = 20;
-var placements = [22, 64, 106, 148, 190, 232, 274, 316, 358];
-var harmony, melody, bass, percussion;
-var x1 = placements[~hxval - 1];
-var x2 = placements[~mxval - 1];
-var x3 = placements[~bxval - 1];
-var x4 = placements[~pxval - 1];
-var y1 = placements[~hyval - 1];
-var y2 = placements[~myval - 1];
-var y3 = placements[~byval - 1];
-var y4 = placements[~pyval - 1];
-var c1 = Color.rand;
+var height = 380; // height of the grid
+var width = 380; // width of the gird
+var initialSize = 20; // size of each cell (they're actually 40 across, so this is actually the radius not the diamer
+
+var harmony, melody, bass, percussion; // tracks!
+
+var coords = [22, 64, 106, 148, 190, 232, 274, 316, 358]; // grid points at the center of each cell
+
+// These variables take the global variables from the user selection console as the indexes of the coords array
+//    and identify the points that the cells should be placed at
+var x1 = coords[~hxval - 1];
+var x2 = coords[~mxval - 1];
+var x3 = coords[~bxval - 1];
+var x4 = coords[~pxval - 1];
+var y1 = coords[~hyval - 1];
+var y2 = coords[~myval - 1];
+var y3 = coords[~byval - 1];
+var y4 = coords[~pyval - 1];
+var c1 = Color.rand; // each box is given a random color
 var c2 = Color.rand;
 var c3 = Color.rand;
 var c4 = Color.rand;
 
+// This function creates the cells using the coordinates and color assigned
 var drawCell = { | x, y, color, ind |
 	var cell = (
 		x: x,
 		y: y,
-		xSpd: 0,
-		ySpd: 0,
 		size: initialSize,
-		color: Color.rand,
-		points: 0,
-		ate: List[]
+		color: color
 	);
 	Pen.color = color;
 	Pen.fillRect(Rect(cell[\x] - cell[\size], cell[\y] - cell[\size], cell[\size] * 2, cell[\size] * 2));
@@ -104,7 +130,7 @@ var drawCell = { | x, y, color, ind |
 	{ ind == 3 } { Pen.line((cell[\x] - cell[\size]) @ (cell[\y] + 10), (cell[\x] - 10) @ (cell[\y] + cell[\size])); };
 	Pen.perform([\stroke]);
 
-	cell;
+	cell; // return the newly generated cell
 	};
 
 // Create Grid
@@ -117,8 +143,9 @@ w = Window("Grid", Rect(
 v = UserView(w, Rect(0, 0, width, height));
 v.background = Color.grey;
 v.animate = true;
-v.frameRate = 1;
+v.frameRate = 1; // determines how many times a second the grid is rewritten; affects cell movements
 
+// This function is called frameRate times per second
 v.drawFunc = {
 
 	// Do drawing
@@ -143,13 +170,14 @@ v.drawFunc = {
 			Pen.perform([\stroke]);
 		});
 
+		// Generate the cells for each track!
 		harmony = drawCell.value(x1, y1, c1, 0);
 		melody = drawCell.value(x2, y2 ,c2, 1);
 		bass = drawCell.value(x3, y3, c3, 2);
 		percussion = drawCell.value(x4, y4, c4, 3);
 
 
-		// Draw the Y insignia
+		// Draw the Y insignia on each track's cell, for fun      -\_( '-' )_/-
 		track = 0;
 		while( { track < 4 }, {
 			case
@@ -179,24 +207,25 @@ v.drawFunc = {
 			track = track + 1;
 		});
 
-	//harmony changes
-	case
+		//harmony changes [allow for movement of cells!]
+		case
 		{ hCount == 0 }  {}
-		{ hPitch[hCount - 1] < hPitch[hCount] } { x1 = placements[ (placements.indexOf(x1) + 1) % 9 ] }
-		{ x1 = placements[ (placements.indexOf(x1) - 1) % 9 ] };
+		{ hPitch[hCount - 1] < hPitch[hCount] } { x1 = coords[ (coords.indexOf(x1) + 1) % 9 ] }
+		{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] };
 
 		hCount = (hCount +1) % hPitch.size;
 
 		// TODO:
 		// 1. deal with framerate so it changes every time the note changes
 		// 2. apply to bass and percussion, melody
-		// 3. joystick
-
+		// 3. incorporate joystick
+		// 4. figure out 4 directional movement
+		// 5. collisions!
+		// 6. trace the path!
 
 	};
 };
 )
-
 
 (
 //CONTROLLING INTERACTION WITH JOYSTICK BASS
