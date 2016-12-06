@@ -148,6 +148,7 @@ v.drawFunc = {
 		bass = drawCell.value(x3, y3, c3, 2);
 		percussion = drawCell.value(x4, y4, c4, 3);
 
+
 		// Draw the Y insignia
 		track = 0;
 		while( { track < 4 }, {
@@ -178,7 +179,6 @@ v.drawFunc = {
 			track = track + 1;
 		});
 
-
 	//harmony changes
 	case
 		{ hCount == 0 }  {}
@@ -192,11 +192,13 @@ v.drawFunc = {
 		// 2. apply to bass and percussion, melody
 		// 3. joystick
 
+
 	};
 };
 )
 
-Window.closeAll;
+
+(
 //CONTROLLING INTERACTION WITH JOYSTICK BASS
 //Dev
 HID.findAvailable;
@@ -253,14 +255,14 @@ HID.findAvailable;
 ~myhid.elements[14].action = { |...args| args.postln; };
 
 // Joystick Twist
-~myhid.elements[15].action = { |...args| args.postln; x.set(\joytwist, args[0].linlin(0,1, 40, 1000))};
+/*~myhid.elements[15].action = { |...args| args.postln; x.set(\joytwist, args[0].linlin(0,1, 40, 1000))};*/
 
 // enter args for your buttons, stick(s), etc.
 
-SynthDef(\hid, {|trig, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, joyx=400, joyy, topjoy, joytwist|
+SynthDef(\hid, {|trig, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, joyx=400, joyy, topjoy, /*joytwist */|
 
 	var buttarray = [b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12];
-	var snd = SinOsc.ar(joyx + SinOsc.ar(joyy, mul:joytwist));
+	var snd = SinOsc.ar(joyx + SinOsc.ar(joyy, /*mul:joytwist*/));
 	var butts = Array.fill(11, {|i| Pan2.ar(Saw.ar(Rand(40, 4000), buttarray[i]), rrand(-0.8, 0.8)) });
 	butts = Mix(butts);
 		Out.ar(0, Pan2.ar(snd, 1) + butts);
@@ -280,9 +282,7 @@ x.free;
 
 // or close all HID device altogether
 HID.closeAll
-
-
-
+)
 (
 //GENERATING BASS
 //Dev
