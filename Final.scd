@@ -218,10 +218,11 @@ v.drawFunc = {
 		hCount = (hCount +1) % hPitch.size;
 
 		// TODO:
-		// 1. deal with framerate so it changes every time the note changes (ben)
-		// 2. apply to bass and percussion (just moving back and forth), melody (erika)
+		// 1. deal with frame= rate so it changes every time the note changes-  (ben)
+		// 2. apply to bass, just like melody - (erika)
+		// 3. percussion (just moving back and forth [0,1]), melody - (erika)
 		// 3. incorporate joystick (erika) erika i have ideas for this!!!
-		// 4. figure out 4 directional movement (talk about this)
+		// 4. figure out 4 directional movement (talk about this) - (ben)
 		// 5. collisions! (talk about this)
 		// 6. trace the path! (ben)
 	};
