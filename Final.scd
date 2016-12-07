@@ -353,13 +353,14 @@ v.drawFunc = {
 
 
 		// TODO:
-		// 1. deal with framerate so it changes every time the note changes-  (ben)
-//done 2. apply to bass, just like melody - (erika)
-//done 3. percussion (just moving back and forth [0,1]), melody - (erika)
-		// 4. incorporate joystick (erika) erika i have ideas for this!!!
-//done 5. figure out 4-directional movement (ben)
-		// 6. collisions! (talk about this)
-//done 7. trace the path! (ben)
+		// 1. deal with frame= rate so it changes every time the note changes-  (ben)
+		// 2. apply to bass, just like melody - (erika)
+		// 3. percussion (just moving back and forth [0,1]), melody - (erika)
+		// 3. incorporate joystick (erika) erika i have ideas for this!!!
+		       //4. sustatin the note
+		// 4. figure out 4 directional movement (talk about this) - (ben)
+		// 5. collisions! (talk about this)
+		// 6. trace the path! (ben)
 	};
 };
 )
