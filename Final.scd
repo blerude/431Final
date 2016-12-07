@@ -24,17 +24,17 @@ StaticText.new(x, Rect(80,0,260,210)).string_("NOTE: Coordinate pairs must be di
 
 // Harmony, melody, bass, and percussion fields are below. The text fields are global variables so that the
 //   values entered inside can be accessed from the interface code block below.
-StaticText.new(x, Rect(20,0,180,270)).string_("Harmony:");
+StaticText.new(x, Rect(20,0,180,270)).string_("Melody:");
 StaticText.new(x, Rect(110,0,50,270)).string_("X Value:");
-~hx = TextField(x,Rect(170,120,50,30));
+~mx = TextField(x,Rect(170,120,50,30));
 StaticText.new(x, Rect(250,0,50,270)).string_("Y Value:");
-~hy = TextField(x,Rect(310,120,50,30));
+~my = TextField(x,Rect(310,120,50,30));
 
-StaticText.new(x, Rect(20,0,180,370)).string_("Melody:");
+StaticText.new(x, Rect(20,0,180,370)).string_("Harmony:");
 StaticText.new(x, Rect(110,0,50,370)).string_("X Value:");
-~mx = TextField(x,Rect(170,170,50,30));
+~hx = TextField(x,Rect(170,170,50,30));
 StaticText.new(x, Rect(250,0,50,370)).string_("Y Value:");
-~my = TextField(x,Rect(310,170,50,30));
+~hy = TextField(x,Rect(310,170,50,30));
 
 StaticText.new(x, Rect(20,0,180,470)).string_("Bass:");
 StaticText.new(x, Rect(110,0,50,470)).string_("X Value:");
@@ -53,14 +53,14 @@ b = Button.new(x,Rect(155,320,90,30))
 .states_([["DONE"]])
 .action_(  {
 	// Save responses to x and y variables for each track; if response is invalid, choose random entry
-	if ((~hx.value.asInteger > 0) && (~hx.value.asInteger < 16),
-		{ ~hxval = ~hx.value.asInteger }, { ~hxval = rrand(1, 9) } );
-	if ((~hy.value.asInteger > 0) && (~hy.value.asInteger < 16),
-		{ ~hyval = ~hy.value.asInteger }, { ~hyval = rrand(1, 9) } );
 	if ((~mx.value.asInteger > 0) && (~mx.value.asInteger < 16),
 		{ ~mxval = ~mx.value.asInteger }, { ~mxval = rrand(1, 9) } );
 	if ((~my.value.asInteger > 0) && (~my.value.asInteger < 16),
 		{ ~myval = ~my.value.asInteger }, { ~myval = rrand(1, 9) } );
+	if ((~hx.value.asInteger > 0) && (~hx.value.asInteger < 16),
+		{ ~hxval = ~hx.value.asInteger }, { ~hxval = rrand(1, 9) } );
+	if ((~hy.value.asInteger > 0) && (~hy.value.asInteger < 16),
+		{ ~hyval = ~hy.value.asInteger }, { ~hyval = rrand(1, 9) } );
 	if ((~bx.value.asInteger > 0) && (~bx.value.asInteger < 16),
 		{ ~bxval = ~bx.value.asInteger }, { ~bxval = rrand(1, 9) } );
 	if ((~by.value.asInteger > 0) && (~by.value.asInteger < 16),
@@ -83,37 +83,62 @@ b = Button.new(x,Rect(155,320,90,30))
 
 (
 //GUI STUFF
-var hPitch = [ 2, 3, 3, 5, 6, 2, 6, 1 ]; // placeholder pitch array for the harmony line
+var hPitch = [ 0, 3, 6, 8, 12, 15 ]; // placeholder pitch array for the harmony line
 var hCount = 0; // placeholder count variable for testing
 var bPitch = [ 1, 4, 1, 5, 4, 5, 1 ];
 var bCount = 0;
 var pPitch = [ 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0 ];
 var pCount = 0;
+var mPitch = [ ];
+var mCount = 0;
 
 var height = 380; // height of the grid
 var width = 380; // width of the gird
 var initialSize = 20; // size of each cell (they're actually 40 across, so this is actually the radius not the diamer
 
-var harmony, melody, bass, percussion; // tracks!
+var melody, harmony, bass, percussion; // tracks!
 
 var coords = [22, 64, 106, 148, 190, 232, 274, 316, 358]; // grid points at the center of each cell
 
 // These variables take the global variables from the user selection console as the indexes of the coords array
 //    and identify the points that the cells should be placed at
 var x1 = coords[~hxval - 1];
-var x2 = coords[~mxval - 1];
-var x3 = coords[~bxval - 1];
-var x4 = coords[~pxval - 1];
+var x2 = coords[~bxval - 1];
+var x3 = coords[~pxval - 1];
+var x4 = coords[~mxval - 1];
 var y1 = coords[~hyval - 1];
-var y2 = coords[~myval - 1];
-var y3 = coords[~byval - 1];
-var y4 = coords[~pyval - 1];
+var y2 = coords[~byval - 1];
+var y3 = coords[~pyval - 1];
+var y4 = coords[~myval - 1];
+
+var hx = x1;
+var hy = y1;
+var hxArray = [ ];
+var hyArray = [ ];
+
+var bx = x2;
+var by = y2;
+var bxArray = [ ];
+var byArray = [ ];
+
+var px = x3;
+var py = y3;
+var pxArray = [ ];
+var pyArray = [ ];
+
+var mx = x4;
+var my = y4;
+var mxArray = [ ];
+var myArray = [ ];
+
 var c1 = Color.rand; // each box is given a random color
 var c2 = Color.rand;
 var c3 = Color.rand;
-var c4 = Color.rand;
-var boxX = [rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9) ]; // Barrier cell x indices
-var boxY = [rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9) ]; // Barrier cell y indices
+var c4 = Color.blue;
+var boxX = [ 4, 6, 6, 8, 4, 2, 3, 2 ]; // Barrier cell x indices
+var boxY = [ 2, 5, 6, 3, 8, 5, 4, 3 ]; // Barrier cell y indices
+
+var times = 0;
 
 // This function creates the cells using the coordinates and color assigned
 var drawCell = { | x, y, color, ind |
@@ -130,29 +155,39 @@ var drawCell = { | x, y, color, ind |
 	Pen.strokeColor = Color.black;
 	Pen.width = 3;
 	case
-	{ ind == 0 } { Pen.line((cell[\x] - cell[\size]) @ (cell[\y] - 10), (cell[\x] - 10) @ (cell[\y] -  cell[\size])); }
-	{ ind == 1 } { Pen.line((cell[\x] + cell[\size]) @ (cell[\y] - 10), (cell[\x] + 10) @ (cell[\y] - cell[\size])); }
-	{ ind == 2 } { Pen.line((cell[\x] + cell[\size]) @ (cell[\y] + 10), (cell[\x] + 10) @ (cell[\y] + cell[\size])); }
-	{ ind == 3 } { Pen.line((cell[\x] - cell[\size]) @ (cell[\y] + 10), (cell[\x] - 10) @ (cell[\y] + cell[\size])); };
+	{ ind == 0 } { Pen.line((cell[\x] - cell[\size]) @ (cell[\y] - 10), (cell[\x] - 10) @ (cell[\y] -  cell[\size])); } // Harmony
+	{ ind == 1 } { Pen.line((cell[\x] + cell[\size]) @ (cell[\y] - 10), (cell[\x] + 10) @ (cell[\y] - cell[\size])); } // Bass
+	{ ind == 2 } { Pen.line((cell[\x] + cell[\size]) @ (cell[\y] + 10), (cell[\x] + 10) @ (cell[\y] + cell[\size])); }; // Percussion
 	Pen.perform([\stroke]);
 
 	cell; // return the newly generated cell
-	};
+};
 
-/*var moveCell = { | pitches, count, coords, x, y |
-	case
-	{ count == 0 }  { }
-	{ (pitches[count - 1] < pitches[count]) && ((pitches[count] - pitches[count - 1]) < 3) }
-	   { x = coords[ (coords.indexOf(x) + 1) % 9 ] }
-	{ pitches[count - 1] < pitches[count] }
-	   { y = coords[ (coords.indexOf(y) + 1) % 9 ] }
-	{ pitches[count - 1] > pitches[count] && ((pitches[count - 1] - pitches[count]) < 3) }
-	   { x = coords[ (coords.indexOf(x) - 1) % 9 ] }
-	{ pitches[count - 1] > pitches[count] }
-	   { y = coords[ (coords.indexOf(y) - 1) % 9 ] };
+// This function takes an array of x coordinates and an array of corresponding y coordinates in order to
+//    trace the pathways of the given track
+var tracePath = { | xArray, yArray, width, height |
+	z = 1;
+	while ( { z < xArray.size }, {
+		case
+		//x jump small to big
+		{ (abs(xArray[z - 1] - xArray[z]) > 42) && (xArray[z] > xArray[z - 1]) }
+		{ Pen.lineTo(2 @ yArray[z]); Pen.moveTo((width - 2) @ yArray[z]); Pen.lineTo(xArray[z] @ yArray[z]) }
+		//x jump big to small
+		{ (abs(xArray[z - 1] - xArray[z]) > 42) && (xArray[z] < xArray[z - 1]) }
+		{ Pen.lineTo((width - 2) @ yArray[z]); Pen.moveTo(2 @ yArray[z]); Pen.lineTo(xArray[z] @ yArray[z]) }
+		//y jump small to big
+		{ (abs(yArray[z - 1] - yArray[z]) > 42) && (yArray[z] > yArray[z - 1]) }
+		{ Pen.lineTo(xArray[z] @ 2); Pen.moveTo(xArray[z] @ (height - 2)); Pen.lineTo(xArray[z] @ yArray[z]) }
+		//y jump big to small
+		{ (abs(yArray[z - 1] - yArray[z]) > 42) && (yArray[z] < yArray[z - 1]) }
+		{ Pen.lineTo(xArray[z] @ (height - 2)); Pen.moveTo(xArray[z] @ 2); Pen.lineTo(xArray[z] @ yArray[z]) }
+		//should print
+		{ (abs(xArray[z - 1] - xArray[z]) == 0) || (abs(yArray[z - 1] - yArray[z]) == 0) } { Pen.lineTo(xArray[z] @ yArray[z]) };
 
-	count = (count +1) % pitches.size;
-};*/
+		z = z + 1;
+	} );
+};
+
 
 // Create Grid
 w = Window("Grid", Rect(
@@ -164,7 +199,7 @@ w = Window("Grid", Rect(
 v = UserView(w, Rect(0, 0, width, height));
 v.background = Color.grey;
 v.animate = true;
-v.frameRate = 1; // determines how many times a second the grid is rewritten; affects cell movements
+v.frameRate = 2; // determines how many times a second the grid is rewritten; affects cell movements
 
 // This function is called frameRate times per second
 v.drawFunc = {
@@ -191,25 +226,68 @@ v.drawFunc = {
 			Pen.perform([\stroke]);
 		});
 
+		boxX.size.do( { |i| if( (mCount == 0 && coords[boxX[i]] == x4 && coords[boxY[i]] == y4),
+			{ boxX.removeAt(i); boxY.removeAt(i); boxX.postln; boxY.postln } ) });
+
 		// Creates a series of black cells to increase grid occupancy and the likelihood for collisions
 		boxX.size.do( { |i| drawCell.value(coords[boxX[i]], coords[boxY[i]], Color.black, 5) }) ;
 
+
+		// Add new coordinate values to arrays that track the paths of each track's cell
+		hxArray = hxArray.add(x1);
+		hyArray = hyArray.add(y1);
+		bxArray = bxArray.add(x2);
+		byArray = byArray.add(y2);
+		pxArray = pxArray.add(x3);
+		pyArray = pyArray.add(y3);
+		mxArray = mxArray.add(x4);
+		myArray = myArray.add(y4);
+
+		// Create the pathways that show the progression of the cells
+		Pen.width = 3;
+
+		// Harmony pathway
+		Pen.strokeColor = c1;
+		Pen.moveTo(hx @ hy);
+		tracePath.value(hxArray, hyArray, width, height);
+		Pen.perform([\stroke]);
+
+		// Bass pathway
+		Pen.strokeColor = c2;
+		Pen.moveTo(bx @ by);
+		tracePath.value(bxArray, byArray, width, height);
+		Pen.perform([\stroke]);
+
+		// Percussion pathway
+		Pen.strokeColor = c3;
+		Pen.moveTo(px @ py);
+		tracePath.value(pxArray, pyArray, width, height);
+		Pen.perform([\stroke]);
+
+		// Melody pathway
+		Pen.strokeColor = c4;
+		Pen.moveTo(mx @ my);
+		mxArray.size.do( { |i| Pen.lineTo(mxArray[i] @ myArray[i]) } );
+		Pen.perform([\stroke]);
+
+
 		// Generate the cells for each track!
 		harmony = drawCell.value(x1, y1, c1, 0);
-		melody = drawCell.value(x2, y2 ,c2, 1);
-		bass = drawCell.value(x3, y3, c3, 2);
-		percussion = drawCell.value(x4, y4, c4, 3);
+		bass = drawCell.value(x2, y2, c2, 1);
+		percussion = drawCell.value(x3, y3, c3, 2);
+		melody = drawCell.value(x4, y4, c4, 3);
+
 
 		// Draw the Y insignia on each track's cell, for fun      -\_( '-' )_/-
 		track = 0;
 		while( { track < 4 }, {
 			case
 			{ track == 0 } { currCell = harmony }
-			{ track == 1 } { currCell = melody }
-			{ track == 2 } { currCell = bass }
-			{ track == 3 } { currCell = percussion };
+			{ track == 1 } { currCell = bass }
+			{ track == 2 } { currCell = percussion }
+			{ track == 3 } { currCell = melody };
 
-			if (track == 1, { Pen.strokeColor = Color.yellow }, { Pen.strokeColor = Color.white });
+			if (track == 3, { Pen.strokeColor = Color.white }, { Pen.strokeColor = Color.black });
 
 			Pen.width = 4;
 			Pen.moveTo((currCell[\x] - 9) @ (currCell[\y] - 13));
@@ -231,8 +309,6 @@ v.drawFunc = {
 			track = track + 1;
 		});
 
-		/*moveCell.value(hPitch, hCount, coords, x1, y1);
-		moveCell.value(bPitch, bCount, coords, x3, y3); */
 
 
 		// THESE SHOULD BE CALLED ONLY WHEN DURATION CHANGES:
@@ -256,13 +332,13 @@ v.drawFunc = {
 		case
 		{ bCount == 0 }  { }
 		{ (bPitch[bCount - 1] < bPitch[bCount]) && ((bPitch[bCount] - bPitch[bCount - 1]) < 3) }
-			{ x3 = coords[ (coords.indexOf(x3) + 1) % 9 ] }
+			{ x2 = coords[ (coords.indexOf(x2) + 1) % 9 ] }
 		{ bPitch[bCount - 1] < bPitch[bCount] }
-		    { y3 = coords[ (coords.indexOf(y3) + 1) % 9 ] }
+		    { y2 = coords[ (coords.indexOf(y2) + 1) % 9 ] }
 		{ bPitch[bCount - 1] > bPitch[hCount] && ((bPitch[bCount - 1] - bPitch[bCount]) < 3) }
-		    { x3 = coords[ (coords.indexOf(x3) - 1) % 9 ] }
+		    { x2 = coords[ (coords.indexOf(x2) - 1) % 9 ] }
 		{ bPitch[bCount - 1] > bPitch[hCount] }
-		    { y3 = coords[ (coords.indexOf(y3) - 1) % 9 ] };
+		    { y2 = coords[ (coords.indexOf(y2) - 1) % 9 ] };
 
 		bCount = (bCount + 1) % bPitch.size;
 
@@ -270,13 +346,10 @@ v.drawFunc = {
 		// Determine the new coordinate for the percussion cell based on rest vs. beat
 		case
 		{ pCount == 0 }  { }
-		{ pPitch[pCount] == 0 && pPitch[pCount - 1] == 1 }  { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ] }
-		{ pPitch[pCount] == 1 && pPitch[pCount - 1] == 0 }  { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ] };
+		{ pPitch[pCount] == 0 && pPitch[pCount - 1] == 1 }  { x3 = coords[ (coords.indexOf(x3) + 1) % 9 ] }
+		{ pPitch[pCount] == 1 && pPitch[pCount - 1] == 0 }  { x3 = coords[ (coords.indexOf(x3) - 1) % 9 ] };
 
 		pCount = (pCount + 1) % bPitch.size;
-
-
-
 
 
 		// TODO:
@@ -286,7 +359,7 @@ v.drawFunc = {
 		// 4. incorporate joystick (erika) erika i have ideas for this!!!
 //done 5. figure out 4-directional movement (ben)
 		// 6. collisions! (talk about this)
-		// 7. trace the path! (ben)
+//done 7. trace the path! (ben)
 	};
 };
 )
