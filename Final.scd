@@ -83,8 +83,12 @@ b = Button.new(x,Rect(155,320,90,30))
 
 (
 //GUI STUFF
-var hPitch =[ 2, 3, 8, 5, 6]; // placeholder pitch array for the harmony line
-var hCount =0; // placeholder count variable for testing
+var hPitch = [ 2, 3, 3, 5, 6, 2, 6, 1 ]; // placeholder pitch array for the harmony line
+var hCount = 0; // placeholder count variable for testing
+var bPitch = [ 1, 4, 1, 5, 4, 5, 1 ];
+var bCount = 0;
+var pPitch = [ 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0 ];
+var pCount = 0;
 
 var height = 380; // height of the grid
 var width = 380; // width of the gird
@@ -108,6 +112,8 @@ var c1 = Color.rand; // each box is given a random color
 var c2 = Color.rand;
 var c3 = Color.rand;
 var c4 = Color.rand;
+var boxX = [rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9) ]; // Barrier cell x indices
+var boxY = [rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9), rrand(1,9) ]; // Barrier cell y indices
 
 // This function creates the cells using the coordinates and color assigned
 var drawCell = { | x, y, color, ind |
@@ -133,6 +139,21 @@ var drawCell = { | x, y, color, ind |
 	cell; // return the newly generated cell
 	};
 
+/*var moveCell = { | pitches, count, coords, x, y |
+	case
+	{ count == 0 }  { }
+	{ (pitches[count - 1] < pitches[count]) && ((pitches[count] - pitches[count - 1]) < 3) }
+	   { x = coords[ (coords.indexOf(x) + 1) % 9 ] }
+	{ pitches[count - 1] < pitches[count] }
+	   { y = coords[ (coords.indexOf(y) + 1) % 9 ] }
+	{ pitches[count - 1] > pitches[count] && ((pitches[count - 1] - pitches[count]) < 3) }
+	   { x = coords[ (coords.indexOf(x) - 1) % 9 ] }
+	{ pitches[count - 1] > pitches[count] }
+	   { y = coords[ (coords.indexOf(y) - 1) % 9 ] };
+
+	count = (count +1) % pitches.size;
+};*/
+
 // Create Grid
 w = Window("Grid", Rect(
 	(Window.screenBounds.width/2)-(width/2),
@@ -143,7 +164,7 @@ w = Window("Grid", Rect(
 v = UserView(w, Rect(0, 0, width, height));
 v.background = Color.grey;
 v.animate = true;
-v.frameRate = 60; // determines how many times a second the grid is rewritten; affects cell movements
+v.frameRate = 1; // determines how many times a second the grid is rewritten; affects cell movements
 
 // This function is called frameRate times per second
 v.drawFunc = {
@@ -170,12 +191,14 @@ v.drawFunc = {
 			Pen.perform([\stroke]);
 		});
 
+		// Creates a series of black cells to increase grid occupancy and the likelihood for collisions
+		boxX.size.do( { |i| drawCell.value(coords[boxX[i]], coords[boxY[i]], Color.black, 5) }) ;
+
 		// Generate the cells for each track!
 		harmony = drawCell.value(x1, y1, c1, 0);
 		melody = drawCell.value(x2, y2 ,c2, 1);
 		bass = drawCell.value(x3, y3, c3, 2);
 		percussion = drawCell.value(x4, y4, c4, 3);
-
 
 		// Draw the Y insignia on each track's cell, for fun      -\_( '-' )_/-
 		track = 0;
@@ -186,7 +209,8 @@ v.drawFunc = {
 			{ track == 2 } { currCell = bass }
 			{ track == 3 } { currCell = percussion };
 
-			Pen.strokeColor = Color.white;
+			if (track == 1, { Pen.strokeColor = Color.yellow }, { Pen.strokeColor = Color.white });
+
 			Pen.width = 4;
 			Pen.moveTo((currCell[\x] - 9) @ (currCell[\y] - 13));
 			Pen.lineTo((currCell[\x] - 1) @ currCell[\y]);
@@ -207,24 +231,62 @@ v.drawFunc = {
 			track = track + 1;
 		});
 
-		//harmony changes [allow for movement of cells!]
+		/*moveCell.value(hPitch, hCount, coords, x1, y1);
+		moveCell.value(bPitch, bCount, coords, x3, y3); */
 
-		// this should only be called when duration changes
+
+		// THESE SHOULD BE CALLED ONLY WHEN DURATION CHANGES:
+
+		// Determine the new coordinate for the harmony cell based on pitch relationships
 		case
-		{ hCount == 0 }  {}
-		{ hPitch[hCount - 1] < hPitch[hCount] } { x1 = coords[ (coords.indexOf(x1) + 1) % 9 ] }
-		{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] };
+		{ hCount == 0 }  { }
+		{ (hPitch[hCount - 1] < hPitch[hCount]) && ((hPitch[hCount] - hPitch[hCount - 1]) < 3) }
+			{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ] }
+		{ hPitch[hCount - 1] < hPitch[hCount] }
+		    { y1 = coords[ (coords.indexOf(y1) + 1) % 9 ] }
+		{ hPitch[hCount - 1] > hPitch[hCount] && ((hPitch[hCount - 1] - hPitch[hCount]) < 3) }
+		    { x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] }
+		{ hPitch[hCount - 1] > hPitch[hCount] }
+		    { y1 = coords[ (coords.indexOf(y1) - 1) % 9 ] };
 
-		hCount = (hCount +1) % hPitch.size;
+		hCount = (hCount + 1) % hPitch.size;
+
+
+		// Determine the new coordinate for the bass cell based on pitch relationships
+		case
+		{ bCount == 0 }  { }
+		{ (bPitch[bCount - 1] < bPitch[bCount]) && ((bPitch[bCount] - bPitch[bCount - 1]) < 3) }
+			{ x3 = coords[ (coords.indexOf(x3) + 1) % 9 ] }
+		{ bPitch[bCount - 1] < bPitch[bCount] }
+		    { y3 = coords[ (coords.indexOf(y3) + 1) % 9 ] }
+		{ bPitch[bCount - 1] > bPitch[hCount] && ((bPitch[bCount - 1] - bPitch[bCount]) < 3) }
+		    { x3 = coords[ (coords.indexOf(x3) - 1) % 9 ] }
+		{ bPitch[bCount - 1] > bPitch[hCount] }
+		    { y3 = coords[ (coords.indexOf(y3) - 1) % 9 ] };
+
+		bCount = (bCount + 1) % bPitch.size;
+
+
+		// Determine the new coordinate for the percussion cell based on rest vs. beat
+		case
+		{ pCount == 0 }  { }
+		{ pPitch[pCount] == 0 && pPitch[pCount - 1] == 1 }  { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ] }
+		{ pPitch[pCount] == 1 && pPitch[pCount - 1] == 0 }  { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ] };
+
+		pCount = (pCount + 1) % bPitch.size;
+
+
+
+
 
 		// TODO:
-		// 1. deal with frame= rate so it changes every time the note changes-  (ben)
-		// 2. apply to bass, just like melody - (erika)
-		// 3. percussion (just moving back and forth [0,1]), melody - (erika)
-		// 3. incorporate joystick (erika) erika i have ideas for this!!!
-		// 4. figure out 4 directional movement (talk about this) - (ben)
-		// 5. collisions! (talk about this)
-		// 6. trace the path! (ben)
+		// 1. deal with framerate so it changes every time the note changes-  (ben)
+//done 2. apply to bass, just like melody - (erika)
+//done 3. percussion (just moving back and forth [0,1]), melody - (erika)
+		// 4. incorporate joystick (erika) erika i have ideas for this!!!
+//done 5. figure out 4-directional movement (ben)
+		// 6. collisions! (talk about this)
+		// 7. trace the path! (ben)
 	};
 };
 )
