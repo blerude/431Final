@@ -1,6 +1,17 @@
 //team Ben, Erika, Devin, Alex 11/28/16 :D
 
 
+// TODO:
+// 1. fix sound harmony, bass         [this is lerudeswim's job]
+// 2. sync melody-harmony rules    [this is tymysports' job]
+// 3. collisions!                                [this is bballerika's job]
+// 6. Devin fix cellular automata      [this is development's job]
+
+// Make it look good
+
+
+
+
 // *****Alright, some comments to hopefully clarify what's going on:
 
 
@@ -95,9 +106,9 @@ b = Button.new(x,Rect(155,320,90,30))
 ~harmony_array = [60, 60, 60, 60];
 
 // Mario-inspired SynthDef for the melody
-SynthDef(\mario, { |out, amp=0.3, freq=400, sustainTime = 0.1|
+SynthDef(\mario, { |out, amp=0.3, freq=60, sustainTime = 0.1|
 	var snd;
-	snd = LFPulse.ar(freq)!2;
+	snd = LFPulse.ar(freq.midicps)!2;
 	snd = snd * EnvGen.ar(Env.linen(0.001, sustainTime, 0.03), doneAction:2);
 	OffsetOut.ar(out, snd*amp);
 }).store;
@@ -131,11 +142,11 @@ SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLev
 }).store;
 
 //Bass synthdef
-SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15,
+SynthDef(\bass, { |freq = 60, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15,
 	detune = 1.005, preamp = 4|
 	var    sig,
 	env = Env.adsr(0.01, 0.3, 0.4, 0.1);
-	freq = Lag.kr(freq, slideTime);
+	freq = Lag.kr(freq, slideTime).midicps;
 	sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp
 	* EnvGen.kr(env, gate, doneAction: 2);
 	sig = LPF.ar(sig, ffreq);
@@ -311,7 +322,6 @@ var bPitch = ~bassNotes;
 var bCount = 0;
 var pPitch = ~drumNotes;
 var pCount = 0;
-var mPitch = [ ];
 var mCount = 0;
 
 var height = 380; // height of the grid
@@ -482,7 +492,6 @@ var melodySong =  {arg input;
 
 	l_sys_rule = l_sys_rule ++ input;
 
-
 	if(l_sys_rule[0] == 125, {
 		note = note ++ nextA.(~noteArray[~counter]);
 		~noteArray = ~noteArray ++ note[0];
@@ -519,20 +528,17 @@ var melodySong =  {arg input;
 
 
 var moveHarmony = { |coords|
+	var newP = ~harmony_array[~counter];
 	case
-	{ ~counter < 4 }  { }
-	{ (~harmony_array[~counter - 4 - 1] < ~harmony_array[~counter - 4]) && ((~harmony_array[~counter - 4] - ~harmony_array[~counter - 4 - 1]) < 3) }
-	{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]; h.set(\freq, 523.25) } // X moves to the right
-	{ ~harmony_array[~counter - 4 - 1] < ~harmony_array[~counter - 4] }
-	{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ]; h.set(\freq, 440) } // Y moves up
-	{ ~harmony_array[~counter - 4 - 1] > ~harmony_array[~counter - 4] && ((~harmony_array[~counter - 4 - 1] - ~harmony_array[~counter - 4]) < 3) }
-	{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ]; h.set(\freq, 739.99) } // X moves to the left
-	{ ~harmony_array[~counter - 4 - 1] > ~harmony_array[~counter - 4] }
-	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ]; h.set(\freq, 783.99) }; // Y moves down
-
-	~harmony_array[~counter - 4].postln;
-	("H: " + ~harmony_array).postln;
-	("N: " + ~noteArray).postln;
+	{ ~counter == 0 }  { }
+	{ (~harmony_array[~counter - 1] < ~harmony_array[~counter]) && ((~harmony_array[~counter] - ~harmony_array[~counter - 1]) < 3) }
+	{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]; h.set(\freq, newP, \sustain, rrand(0.1, 0.5)) } // X moves to the right
+	{ ~harmony_array[~counter - 1] < ~harmony_array[~counter ] }
+	{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ]; h.set(\freq, newP, \sustain, rrand(0.1, 0.5)) } // Y moves up
+	{ ~harmony_array[~counter - 1] > ~harmony_array[~counter] && ((~harmony_array[~counter - 1] - ~harmony_array[~counter]) < 3) }
+	{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ]; h.set(\freq, newP, \sustain, rrand(0.1, 0.5)) } // X moves to the left
+	{ ~harmony_array[~counter - 1] > ~harmony_array[~counter] }
+	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ]; h.set(\freq, newP, \sustain, rrand(0.1, 0.5)) }; // Y moves down
 };
 
 var rate = 0;
@@ -554,13 +560,13 @@ v.keyDownAction = { |view, char, mod, uni, key|
 	var newP = ~noteArray[~counter];
 	case
 	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); moveHarmony.value(coords);
-		s.set(\freq, 261.63, \sustainTime, rrand(0.1, 0.5)) }
+		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
 	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124); moveHarmony.value(coords);
-		s.set(\freq, 349.23, \sustainTime, rrand(0.1, 0.5)) }
+		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
 	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125); moveHarmony.value(coords);
-		s.set(\freq, 392, \sustainTime, 0.1) }
+		s.set(\freq, newP, \sustainTime, 0.1) }
 	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126); moveHarmony.value(coords);
-		s.set(\freq, 783.99, \sustainTime, 0.3) };
+		s.set(\freq, newP, \sustainTime, 0.3) };
 };
 
 // This function is called frameRate times per second
@@ -593,7 +599,6 @@ v.drawFunc = {
 
 		// Creates a series of black cells to increase grid occupancy and the likelihood for collisions
 		boxX.size.do( { |i| drawCell.value(coords[boxX[i]], coords[boxY[i]], Color.black, 5) }) ;
-
 
 		// Add new coordinate values to arrays that track the paths of each track's cell
 		hxArray = hxArray.add(x1);
@@ -677,56 +682,49 @@ v.drawFunc = {
 		// Determine the new coordinate for the harmony cell based on pitch relationships
 
 		//
-/*		{ hCount == 0 }  { }
+		/*		{ hCount == 0 }  { }
 		{ (hPitch[hCount - 1] < hPitch[hCount]) && ((hPitch[hCount] - hPitch[hCount - 1]) < 3) }
-			{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]} // X moves to the right
+		{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]} // X moves to the right
 		{ hPitch[hCount - 1] < hPitch[hCount] }
-		    { y1 = coords[ (coords.indexOf(y1) + 1) % 9 ] } // Y moves up
+		{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ] } // Y moves up
 		{ hPitch[hCount - 1] > hPitch[hCount] && ((hPitch[hCount - 1] - hPitch[hCount]) < 3) }
-		    { x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] } // X moves to the left
+		{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] } // X moves to the left
 		{ hPitch[hCount - 1] > hPitch[hCount] }
-		    { y1 = coords[ (coords.indexOf(y1) - 1) % 9 ] }; // Y moves down
+		{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ] }; // Y moves down
 
 		hCount = (hCount + 1) % hPitch.size;*/
 
-/*var moveHarmony = { | hCount, ~harmony_array |
+		/*var moveHarmony = { | hCount, ~harmony_array |
 		case
 		{ hCount == 0 }  { }
 		{ (~harmony_array[hCount - 1] < ~harmony_array[hCount]) && ((~harmony_array[hCount] - ~harmony_array[hCount - 1]) < 3) }
-			{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ] } // X moves to the right
+		{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ] } // X moves to the right
 		{ ~harmony_array[hCount - 1] < ~harmony_array[hCount] }
-		    { y1 = coords[ (coords.indexOf(y1) + 1) % 9 ] } // Y moves up
+		{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ] } // Y moves up
 		{ ~harmony_array[hCount - 1] > ~harmony_array[hCount] && ((~harmony_array[hCount - 1] - ~harmony_array[hCount]) < 3) }
-		    { x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] } // X moves to the left
+		{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] } // X moves to the left
 		{ ~harmony_array[hCount - 1] > ~harmony_array[hCount] }
-		    { y1 = coords[ (coords.indexOf(y1) - 1) % 9 ] }; // Y moves down
+		{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ] }; // Y moves down
 		};*/
-/*		hCount = (hCount + 1) % ~harmony_array.size;
+		/*		hCount = (hCount + 1) % ~harmony_array.size;
 		("h: " + hCount).postln;
 		~counter.postln;*/
 
-		e = Synth(\drums);
+		e = Synth(\bass);
 		// Determine the new coordinate for the bass cell based on pitch relationships
 		case
 		{ bCount == 0 }  { }
 		{ (bPitch[bCount - 1] < bPitch[bCount]) && ((bPitch[bCount] - bPitch[bCount - 1]) < 3) }
-		    { x2 = coords[ (coords.indexOf(x2) + 1) % 9 ];
-			e.set(\tomLevel, 1 + bPitch[bCount], \sustainTime, 0.1);
-		}
+		{ x2 = coords[ (coords.indexOf(x2) + 1) % 9 ]; e.set(\freq, bPitch[bCount]); }
 		{ bPitch[bCount - 1] < bPitch[bCount] }
-		    { y2 = coords[ (coords.indexOf(y2) + 1) % 9 ];
-			e.set(\tomLevel, 1 + bPitch[bCount], \sustainTime, 0.1);
-		}
+		{ y2 = coords[ (coords.indexOf(y2) + 1) % 9 ]; e.set(\freq, bPitch[bCount]); }
 		{ bPitch[bCount - 1] > bPitch[bCount] && ((bPitch[bCount - 1] - bPitch[bCount]) < 3) }
-		    { x2 = coords[ (coords.indexOf(x2) - 1) % 9 ];
-			e.set(\tomLevel, 1 + bPitch[bCount], \sustainTime, 0.1);
-		}
+		{ x2 = coords[ (coords.indexOf(x2) - 1) % 9 ]; e.set(\freq, bPitch[bCount]); }
 		{ bPitch[bCount - 1] > bPitch[bCount] }
-		    { y2 = coords[ (coords.indexOf(y2) - 1) % 9 ];
-			e.set(\tomLevel, 1 + bPitch[bCount], \sustainTime, 0.1);
-		};
+		{ y2 = coords[ (coords.indexOf(y2) - 1) % 9 ]; e.set(\freq, bPitch[bCount]); };
 
 		bCount = (bCount + 1) % bPitch.size;
+
 
 		m = Synth(\drums);
 		// Determine the new coordinate for the percussion cell based on rest vs. beat
@@ -739,137 +737,25 @@ v.drawFunc = {
 			m.set(\bassLevel, 1, \snareLevel, rrand(0, 1).value, \tomLevel, rrand(0, 1).value, \hatLevel, rrand(0, 1).value); };
 
 		pCount = (pCount + 1) % pPitch.size;
-
-		// TODO:
-		// 1. deal with framerate so it changes every time the note changes [THURS MORNING]
-		// 2. write harmony [THURS MORNING]
-		// 3. collisions! [THURS MORNING]
-		// 4. Prezi! [THURS MORNING]
-		// 5. music to bass, harmony, percussion [THURS MORNING]
-
-		// 6. Devin fix cellular automata
 	};
 };
 )
 
-/*********************************HARMONY*************************************/
-
 (
-//GENERATING BASS
-var currentTime = 200;
-var bifurcationTimes =[300, 344, 354, 359, 362, 363, 374, 375, 383, 384, 385, 386, 400];
-var timeIndex = 0;
-var nextTime = bifurcationTimes[timeIndex];
-var currentDur = 1;
-var bifurcationDurations = [1, 0.5, 0.25, 0.125, 0.0625, 0.167, 0.0625, 0.2, 0.0625, 0.33, 0.167, 0.083, 0.0625];
-var durSize;
-var notesIndex = 0;
-~bassDurations = [];
-~bassNotes = [];
-
-//fill array of bass durations
-while({currentTime < 400}, {
-	while ({currentTime < nextTime},
-		{~bassDurations = ~bassDurations.add(currentDur);
-			currentTime = currentTime + currentDur;
-		});
-	timeIndex = timeIndex + 1;
-	currentDur = bifurcationDurations[timeIndex];
-	nextTime = bifurcationTimes[timeIndex];
-});
-// ~bassDurations.postln;
-~bassDurations = ~bassDurations / 4;
-durSize = ~bassDurations.size;
-// durSize.postln;
-
-while ({notesIndex < durSize},
-	{~bassNotes = ~bassNotes.add([1, 4, 5].choose);
-		notesIndex = notesIndex + 1;
-});
-
-~bassNotes.postln;
-~bassDurations.postln;
-
-/*Changing tempo of bass based on the bifurcations of the logistic map.
-Speeds up every time the number of attracting points doubles
-
-0-1: none
-1-3: 1
-3-3.44 (1 + sqrt(6)): 2
-3.44-3.544: 4
-3.544-3.596: 8
-3.596-3.626: chaos
-3.626-3.63: 6
-3.63-3.633:12
-3.633-3.738: chaos
-3.738-3.741: 5
-3.741-3.744:10
-3.744-3.828: chaos
-3.828-3.841: 3
-3.841-3.848: 6
-3.848-3.857: 12/devolve into chaos
-3.857-4: chaos
-*/
-)
-
-(
-//Synthdef:
-SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15,
-	detune = 1.005, preamp = 4|
-	var    sig,
-	env = Env.adsr(0.01, 0.3, 0.4, 0.1);
-	freq = Lag.kr(freq, slideTime);
-	sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp * EnvGen.kr(env, gate, doneAction: 2);
-	sig = LPF.ar(sig, ffreq);
-	Out.ar(0, sig ! 2 * )
-}).add;
-
-// ~playBass = {
-	Pbind(
-		\instrument, \bass,
-		\degree, Pseq(~bassNotes, 1),
-		\dur, Pseq(~bassDurations, 1),
-		\sustain, Pseq(~bassDurations, 1),
-		\octave, 4,
-		\ctranspose, 5,
-		\scale, [0, 2, 4, 5, 7, 9, 11],
-		\amp, 0.25
-	).play;
-// };
-
-// ~playBass.value;
-
+Pbind(
+	\instrument, \bass,
+	\degree, Pseq(~bassNotes, 1),
+	\dur, Pseq(~bassDurations, 1),
+	\sustain, Pseq(~bassDurations, 1),
+	\octave, 4,
+	\ctranspose, 5,
+	\scale, [0, 2, 4, 5, 7, 9, 11],
+	\amp, 0.25
+).play;
 )
 
 
-(//Drum Synthdef
-~drumSynth = SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLevel = 0, pan1 = 0, pan2 = 0, pan3 = 0, pan4 = 0|
-
-	var env1, env2, env3, env4, bass, snare, hat, tom, bassOut, snareOut, hatOut, tomOut, mixer;
-	env1 = EnvGen.kr(Env.perc(0.001, 0.2, 1, -4), 1, doneAction:2);
-	env2 = EnvGen.kr(Env.perc(0.001, 0.5, 1, -1), 1, doneAction:2);
-	env3 = EnvGen.kr(Env.perc(0.002, 0.3, 1, -2), 1, doneAction:2);
-	env4 = EnvGen.kr(Env.perc(0.001, 0.1, 1, -5), 1, doneAction:2);
-
-	bass = SinOsc.ar(80) + Crackle.ar(1, 0.5);
-	bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
-
-	snare = SinOsc.ar(120) - WhiteNoise.ar(0.5, 0.5);
-	snareOut = Pan2.ar(snare*env4, pan2, snareLevel);
-
-	hat = Klank.ar(`[ [ 6563, 9875 ],
-		[ 0.6, 0.5 ],
-		[ 0.002, 0.003] ], PinkNoise.ar(1));
-	hatOut = Pan2.ar(hat*env3, pan2, hatLevel);
-
-	tom = SinOsc.ar(440);
-	tomOut = Pan2.ar(tom*env4, pan4, tomLevel);
-
-	mixer = Mix.new([bassOut, snareOut, hatOut, tomOut]);
-
-	Out.ar(out, mixer);
-}).store;
-
+(//IDK
 /*~drumCounter = 0;
 playDrums = {
 	var newP = ~drumNotes[~drumCounter];
