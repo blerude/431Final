@@ -86,7 +86,8 @@ var hPitch = [ 0, 3, 6, 8, 12, 15 ]; // placeholder pitch array for the harmony 
 var hCount = 0; // placeholder count variable for testing
 var bPitch = [ 1, 4, 1, 5, 4, 5, 1 ];
 var bCount = 0;
-var pPitch = [ 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0 ];
+// var pPitch = [ 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0 ];
+var pPitch = ~drumNotes;
 var pCount = 0;
 var mPitch = [ ];
 var mCount = 0;
@@ -267,6 +268,7 @@ v.drawFunc = {
 		Pen.strokeColor = c4;
 		Pen.moveTo(mx @ my);
 		mxArray.size.do( { |i| Pen.lineTo(mxArray[i] @ myArray[i]) } );
+		tracePath.value(mxArray, myArray, width, height);
 		Pen.perform([\stroke]);
 
 
