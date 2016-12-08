@@ -87,11 +87,7 @@ var hPitch = [ 0, 3, 6, 8, 12, 15 ]; // placeholder pitch array for the harmony 
 var hCount = 0; // placeholder count variable for testing
 var bPitch = [ 1, 4, 1, 5, 4, 5, 1 ];
 var bCount = 0;
-<<<<<<< Updated upstream
-var pPitch = [ 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0 ];
-=======
 var pPitch = ~drumNotes;
->>>>>>> Stashed changes
 var pCount = 0;
 var mPitch = [ ];
 var mCount = 0;
@@ -638,10 +634,6 @@ var currRule = [];
 var iterateDrumNotes = 0;
 var generations = rrand(1, 10);
 var currGen = 0;
-<<<<<<< Updated upstream
-var currRule;
-=======
->>>>>>> Stashed changes
 
 ~drumNotes = [];
 ~rules = [];
@@ -724,9 +716,7 @@ bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
 
  Out.ar(out, mixer);
 
- }).store;
-<<<<<<< Updated upstream
-=======
+}).store;
 
  a = Pseq ([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]);
  b = Pseq ([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0]);
@@ -741,8 +731,6 @@ bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
 	\snareLevel, Pseq ([Pseq(~drumNotes), Pseq(~drumNotes)], inf),
   \hatLevel, Pseq ([Pseq(~drumNotes)], inf),
   \tomLevel, Pseq ([Pseq(~drumNotes)], inf)
+).play;
 
-  ).play;
-
->>>>>>> Stashed changes
 )
