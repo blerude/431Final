@@ -137,6 +137,8 @@ var c4 = Color.blue;
 var boxX = [ 4, 6, 6, 8, 4, 2, 3, 2 ]; // Barrier cell x indices
 var boxY = [ 2, 5, 6, 3, 8, 5, 4, 3 ]; // Barrier cell y indices
 
+var times = 0;
+
 // This function creates the cells using the coordinates and color assigned
 var drawCell = { | x, y, color, ind |
 	var cell = (
@@ -196,16 +198,7 @@ w = Window("Grid", Rect(
 v = UserView(w, Rect(0, 0, width, height));
 v.background = Color.grey;
 v.animate = true;
-v.frameRate = 5; // determines how many times a second the grid is rewritten; affects cell movements
-
-v.keyDownAction = { |view, char, mod, uni, key|
-	case
-	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ] }
-	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ] }
-	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ] }
-	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ] };
-};
-
+v.frameRate = 2; // determines how many times a second the grid is rewritten; affects cell movements
 
 // This function is called frameRate times per second
 v.drawFunc = {
@@ -273,8 +266,7 @@ v.drawFunc = {
 		// Melody pathway
 		Pen.strokeColor = c4;
 		Pen.moveTo(mx @ my);
-		// mxArray.size.do( { |i| Pen.lineTo(mxArray[i] @ myArray[i]) } );
-		tracePath.value(mxArray, myArray, width, height);
+		mxArray.size.do( { |i| Pen.lineTo(mxArray[i] @ myArray[i]) } );
 		Pen.perform([\stroke]);
 
 
@@ -315,7 +307,6 @@ v.drawFunc = {
 
 			track = track + 1;
 		});
-
 
 		// THESE SHOULD BE CALLED ONLY WHEN DURATION CHANGES:
 
@@ -363,13 +354,97 @@ v.drawFunc = {
 		// 2. apply to bass, just like melody - (erika)
 		// 3. percussion (just moving back and forth [0,1]), melody - (erika)
 		// 3. incorporate joystick (erika) erika i have ideas for this!!!
-		// 4. sustain the note
+		       //4. sustatin the note
+		// 4. figure out 4 directional movement (talk about this) - (ben)
 		// 5. collisions! (talk about this)
+		// 6. trace the path! (ben)
 	};
 };
-
 )
+(
+//CONTROLLING INTERACTION WITH JOYSTICK BASS
+HID.findAvailable;
 
+// if at first you don't succeed, swear -> unplug -> replug.  Repeat as necessary.
+
+
+~myhid = HID.open(1133, 49685);
+
+
+// the front trigger
+~myhid.elements[0].action = { |...args| args.postln; };
+
+// button 2: side trigger
+~myhid.elements[1].action = { |...args| args.postln; x.set(\b2, args[0])};
+
+// button 3
+~myhid.elements[2].action = { |...args| args.postln; x.set(\b3, args[0])};
+
+// button 4
+~myhid.elements[3].action = { |...args| args.postln; x.set(\b4, args[0])};
+
+// button 5
+~myhid.elements[4].action = { |...args| args.postln; x.set(\b5, args[0])};
+
+// button 6
+~myhid.elements[5].action = { |...args| args.postln; x.set(\b6, args[0])};
+
+// button 7
+~myhid.elements[6].action = { |...args| args.postln; x.set(\b7, args[0])};
+
+// button 8
+~myhid.elements[7].action = { |...args| args.postln; x.set(\b8, args[0])};
+
+// button 9
+~myhid.elements[8].action = { |...args| args.postln; x.set(\b9, args[0])};
+
+// button 10
+~myhid.elements[9].action = { |...args| args.postln; x.set(\b10, args[0])};
+
+// button 11
+~myhid.elements[10].action = { |...args| args.postln; x.set(\b11, args[0])};
+
+// button 12
+~myhid.elements[11].action = { |...args| args.postln; x.set(\b12, args[0])};
+
+// Joystick X
+~myhid.elements[12].action = { |...args| args.postln; x.set(\joyx, args[0].linlin(0,1, 40, 1000), \pan, args[0].linlin(0,1, -1,1))};
+
+// Joystick Y
+~myhid.elements[13].action = { |...args| args.postln; x.set(\joyy, args[0].linlin(0,1, 40, 1000))};
+
+// Top Joystick THingy
+~myhid.elements[14].action = { |...args| args.postln; };
+
+// Joystick Twist
+/*~myhid.elements[15].action = { |...args| args.postln; x.set(\joytwist, args[0].linlin(0,1, 40, 1000))};*/
+
+// enter args for your buttons, stick(s), etc.
+
+SynthDef(\hid, {|trig, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, joyx=400, joyy, topjoy, /*joytwist */|
+
+	var buttarray = [b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12];
+	var snd = SinOsc.ar(joyx + SinOsc.ar(joyy, /*mul:joytwist*/));
+	var butts = Array.fill(11, {|i| Pan2.ar(Saw.ar(Rand(40, 4000), buttarray[i]), rrand(-0.8, 0.8)) });
+	butts = Mix(butts);
+		Out.ar(0, Pan2.ar(snd, 1) + butts);
+
+}).add;
+
+
+x = Synth(\hid);
+x.free;
+
+//trigger adds beats to percussion
+
+
+
+// set all the actions to nil
+~myhid.elements.size.do {|i| ~myhid.elements[i].action = nil; };
+
+// or close all HID device altogether
+HID.closeAll
+){rrand(0,1)}.value);
 
 (
 /****************************************************** MELODY ************************************************************/
@@ -469,18 +544,38 @@ if(l_sys_rule[0].asSymbol == 'R', {
 note.postln;
 )
 
-
-
-
 (
 //GENERATING BASS
 //Dev
 
 //variables
-var durations = [0, 1, 0.5, 0.25, 0.125, 0.0625,
-	0.1667, 0.08333, 0.0625,
-	0.2, 0.1, 0.0625,
-	0.333, 0.1667, 0.08333, 0.0625];
+var currentTime = 200;
+var bifurcationTimes =[300, 344, 354, 359, 362, 363, 374, 375, 383, 384, 385, 386, 400];
+var timeIndex = 0;
+var nextTime = bifurcationTimes[timeIndex];
+var currentDur = 1;
+var bifurcationDurations = [0.5, 0.25, 0.125, 0.0625, 0.167, 0.0625, 0.2, 0.0625, 0.33, 0.167, 0.083, 0.0625];
+var bassDurations = [];
+
+//fill array of bass durations
+while({currentTime < 400}, {
+	while ({currentTime < nextTime},
+		{bassDurations = bassDurations.add(currentDur);
+			currentTime = currentTime + currentDur;
+		});
+	timeIndex = timeIndex + 1;
+	currentDur = bifurcationDurations[timeIndex];
+	nextTime = bifurcationTimes[timeIndex];
+});
+
+~playBass = {
+	Pbind(
+		\instrument, \bass,
+		\dur, bassDurations,
+		\amp, 0.25).play;
+};
+
+~playBass.value;
 
 //Synthdef:
 SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15,
@@ -503,44 +598,16 @@ Speeds up every time the number of attracting points doubles
 3.44-3.544: 4
 3.544-3.596: 8
 3.596-3.626: chaos
-3.626-3.63: 6
-3.63-3.633:12
+3.626-3.633: 6
 3.633-3.738: chaos
-3.738-3.741: 5
-3.741-3.744:10
+3.738-3.744: 5
 3.744-3.828: chaos
 3.828-3.841: 3
 3.841-3.848: 6
 3.848-3.857: 12/devolve into chaos
 3.857-4: chaos
 */
-
-~playBass = {
-	Pbind(
-		\instrument, \bass,
-		\dur, Pseq(durations, 2),
-		\amp, 0.25).play;
-};
-
-~playBass.value;
 )
-
-
-
-
-
-Pbind( // Bass
-	\instrument, \bass,
-	\dur, Pseq(~bassDur,1),
-	\sustain, Pseq(~bassDur,1),
-	\octave, 4,
-	\ctranspose,5,
-	\scale, [0,2,4,5,7,9,11],
-	\degree, Pseq(~bassLine,1),
-	\amp, 0.1
-).play;
-
-
 
 (
 //Generating Percussion Using Cellular Automata
@@ -551,7 +618,6 @@ var iterateDrumNotes = 0;
 var generations = rrand(1, 10);
 var currGen = 0;
 var index = 0;
-var currRule;
 
 ~drumNotes = [];
 ~rules = [];
@@ -564,6 +630,7 @@ while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
 				iterateRule = iterateRule + 1;
 		});
 		~rules = ~rules.add(currRule);
+		currRule = [];
 		iterateRuleArray = iterateRuleArray + 1;
 	}
 );
@@ -571,9 +638,12 @@ while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
 //generate initial state for drumNotes array
 
 while ({iterateDrumNotes < 240}, //4 minutes of music
-	{~drumNotes = ~drumNotes.add(rrand(0, 1));
+	{~drumNotes = ~drumNotes.add({rrand(0,1)}.value);
 		iterateDrumNotes = iterateDrumNotes + 1;
 });
+
+~drumNotes.postln;
+~rules.postln;
 
 //do rules for random number of generations
 
@@ -603,6 +673,7 @@ while ({currGen < generations},
 		});
 		currGen = currGen + 1;
 });
+~drumNotes.value;
 )
 
 (//Drum Synthdef
