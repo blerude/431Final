@@ -138,8 +138,6 @@ var c4 = Color.blue;
 var boxX = [ 4, 6, 6, 8, 4, 2, 3, 2 ]; // Barrier cell x indices
 var boxY = [ 2, 5, 6, 3, 8, 5, 4, 3 ]; // Barrier cell y indices
 
-var times = 0;
-
 // This function creates the cells using the coordinates and color assigned
 var drawCell = { | x, y, color, ind |
 	var cell = (
@@ -199,7 +197,16 @@ w = Window("Grid", Rect(
 v = UserView(w, Rect(0, 0, width, height));
 v.background = Color.grey;
 v.animate = true;
-v.frameRate = 2; // determines how many times a second the grid is rewritten; affects cell movements
+v.frameRate = 5; // determines how many times a second the grid is rewritten; affects cell movements
+
+v.keyDownAction = { |view, char, mod, uni, key|
+	case
+	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ] }
+	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ] }
+	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ] }
+	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ] };
+};
+
 
 // This function is called frameRate times per second
 v.drawFunc = {
@@ -267,7 +274,8 @@ v.drawFunc = {
 		// Melody pathway
 		Pen.strokeColor = c4;
 		Pen.moveTo(mx @ my);
-		mxArray.size.do( { |i| Pen.lineTo(mxArray[i] @ myArray[i]) } );
+		// mxArray.size.do( { |i| Pen.lineTo(mxArray[i] @ myArray[i]) } );
+		tracePath.value(mxArray, myArray, width, height);
 		Pen.perform([\stroke]);
 
 
@@ -308,7 +316,6 @@ v.drawFunc = {
 
 			track = track + 1;
 		});
-
 
 
 		// THESE SHOULD BE CALLED ONLY WHEN DURATION CHANGES:
@@ -357,12 +364,11 @@ v.drawFunc = {
 		// 2. apply to bass, just like melody - (erika)
 		// 3. percussion (just moving back and forth [0,1]), melody - (erika)
 		// 3. incorporate joystick (erika) erika i have ideas for this!!!
-		       //4. sustatin the note
-		// 4. figure out 4 directional movement (talk about this) - (ben)
+		// 4. sustain the note
 		// 5. collisions! (talk about this)
-		// 6. trace the path! (ben)
 	};
 };
+
 )
 
 (
@@ -605,6 +611,23 @@ Speeds up every time the number of attracting points doubles
 ~playBass.value;
 )
 
+
+
+
+
+Pbind( // Bass
+	\instrument, \bass,
+	\dur, Pseq(~bassDur,1),
+	\sustain, Pseq(~bassDur,1),
+	\octave, 4,
+	\ctranspose,5,
+	\scale, [0,2,4,5,7,9,11],
+	\degree, Pseq(~bassLine,1),
+	\amp, 0.1
+).play;
+
+
+
 (
 //Generating Percussion Using Cellular Automata
 var iterateRuleArray = 0;
@@ -698,4 +721,4 @@ bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
  Out.ar(out, mixer);
 
  }).store;
-) 
+)
