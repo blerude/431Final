@@ -71,10 +71,10 @@ b = Button.new(x,Rect(155,320,90,30))
 		{ ~pyval = ~py.value.asInteger }, { ~pyval = rrand(1, 9) } );
 
 	// This protects against the possibility that cells are assigned the same coordinates
-	while ({ (~mxval == ~hxval) && (~myval == ~hyval) }, { ~mxval = rrand(1, 9); ~myval = rrand(1, 9) });
-	while ({ ((~bxval == ~hxval) && (~byval == ~hyval)) || ((~bxval == ~mxval) && (~byval == ~myval)) },
+	while ({ (~hxval == ~mxval) && (~hyval == ~myval) }, { ~hxval = rrand(1, 9); ~hyval = rrand(1, 9) });
+	while ({ ((~bxval == ~mxval) && (~byval == ~myval)) || ((~bxval == ~hxval) && (~byval == ~hyval)) },
 		{ ~bxval = rrand(1, 9); ~byval = rrand(1, 9) });
-	while ({ ((~pxval == ~hxval) && (~pyval == ~hyval))  || ((~pxval == ~mxval) && (~pyval == ~myval)) ||
+	while ({ ((~pxval == ~mxval) && (~pyval == ~myval))  || ((~pxval == ~hxval) && (~pyval == ~hyval)) ||
 		((~pxval == ~bxval) && (~pyval == ~byval)) }, { ~pxval = rrand(1, 9); ~pyval = rrand(1, 9) });
 
 	Window.closeAll; // Close window upon exit!
@@ -287,6 +287,7 @@ v.drawFunc = {
 			{ track == 2 } { currCell = percussion }
 			{ track == 3 } { currCell = melody };
 
+			// Melody 'Y' is white, while the rest are black, for easy identification of which one the user controls
 			if (track == 3, { Pen.strokeColor = Color.white }, { Pen.strokeColor = Color.black });
 
 			Pen.width = 4;
@@ -312,6 +313,9 @@ v.drawFunc = {
 
 
 		// THESE SHOULD BE CALLED ONLY WHEN DURATION CHANGES:
+		// concept: music is playing, totally independent of GUI
+		// GUI is running independent of music EXCEPT that the new coordinate functions are only
+		//   called when something has changed in the music
 
 		// Determine the new coordinate for the harmony cell based on pitch relationships
 		case
