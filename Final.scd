@@ -608,3 +608,63 @@ Speeds up every time the number of attracting points doubles
 
 ~playBass.value;
 )
+
+(
+//Generating Percussion Using Cellular Automata
+~drumNotes = [];
+
+//generate rules
+~rules = [];
+var iterateRuleArray = 0;
+var iterateRule;
+while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
+	{var currRule = [];
+		iterateRule = 0;
+		while ({iterateRule < 2},
+			{currRule = currRule.add(rrand(0, 1));
+				iterateRule = iterateRule + 1;
+		});
+		~rules = ~rules.add(currRule);
+		iterateRuleArray = iterateRuleArray + 1;
+	}
+);
+
+//generate initial state for drumNotes array
+var iterateDrumNotes = 0;
+while ({iterateDrumNotes < 240}, //4 minutes of music
+	{~drumNotes = ~drumNotes.add(rrand(0, 1));
+		iterateDrumNotes = iterateDrumNotes + 1;
+});
+
+//do rules for random number of generations
+var generations = rrand(1, 10);
+var currGen = 0;
+while ({currGen < generations},
+	{var index = 0;
+		while ({index < 239}, //don't do it for the last one because no pair
+			var currRule;
+			{if (~drumNotes[index] == 0,
+				{
+					//00
+					if (~drumNotes[index + 1] == 0,
+						{currRule = ~rules[0];});
+					//01
+					if (~drumNotes[index + 1] == 1,
+						{currRule = ~rules[1];});
+			});
+			if (~drumNotes[index] == 1,
+				{
+					//10
+					if (~drumNotes[index + 1] == 0,
+						{currRule = ~rules[2];});
+					//11
+					if (~drumNotes[index + 1] == 1,
+						{currRule = ~rules[3];});
+			});
+			~drumNotes.put(index, currRule[0]);
+			~drumNotes.put(index + 1, currRule[1]);
+			index = index + 1;
+		});
+		currGen = currGen + 1;
+});
+)
