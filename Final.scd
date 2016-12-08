@@ -80,13 +80,17 @@ b = Button.new(x,Rect(155,320,90,30))
 	Window.closeAll; // Close window upon exit!
 });
 )
+
+
 (
 //plz initialize once
 ~noteArray = [60];
 ~counter = 0;
 
+~harmony_array = [60, 60, 60, 60];
+
 // Mario-inspired SynthDef for the melody
-SynthDef(\mario, { |out, amp=0.3, freq=60, sustainTime = 0.1|
+SynthDef(\mario, { |out, amp=0.3, freq=400, sustainTime = 0.1|
 	var snd;
 	snd = LFPulse.ar(freq)!2;
 	snd = snd * EnvGen.ar(Env.linen(0.001, sustainTime, 0.03), doneAction:2);
@@ -258,21 +262,21 @@ var melodySong =  {arg input;
 	//rules for L-System for each direction
 	var nextA = { arg last_note;
 		var probabilities = Dictionary.newFrom([
-			60, [62],
+			60, [60, 72],
 			62, [60],
 			64, [65],
 			65, [67],
 			67, [69],
 			69, [71],
 			71, [72],
-			72, [72]
+			72, [72, 60]
 		]);
 		probabilities.at(last_note).choose;
 	};
 
 	var nextB = { arg last_note;
 		var probabilities = Dictionary.newFrom([
-			60, [60],
+			60, [60, 72],
 			62, [60],
 			64, [62],
 			65, [64],
@@ -344,9 +348,30 @@ var melodySong =  {arg input;
 	});
 
 	s = Synth(\mario);
+	h = Synth(\mario);
+
+	~harmony_array = ~harmony_array ++ ~noteArray[~counter - 4];
 };
 
-// var rate = 0;
+
+var moveHarmony = { |coords|
+	case
+	{ ~counter < 4 }  { }
+	{ (~harmony_array[~counter - 4 - 1] < ~harmony_array[~counter - 4]) && ((~harmony_array[~counter - 4] - ~harmony_array[~counter - 4 - 1]) < 3) }
+	{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]; h.set(\freq, 440) } // X moves to the right
+	{ ~harmony_array[~counter - 4 - 1] < ~harmony_array[~counter - 4] }
+	{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ]; h.set(\freq, 540) } // Y moves up
+	{ ~harmony_array[~counter - 4 - 1] > ~harmony_array[~counter - 4] && ((~harmony_array[~counter - 4 - 1] - ~harmony_array[~counter - 4]) < 3) }
+	{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ]; h.set(\freq, 640) } // X moves to the left
+	{ ~harmony_array[~counter - 4 - 1] > ~harmony_array[~counter - 4] }
+	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ]; h.set(\freq, 740) }; // Y moves down
+
+	~harmony_array[~counter - 4].postln;
+	("H: " + ~harmony_array).postln;
+	("N: " + ~noteArray).postln;
+};
+
+var rate = 0;
 
 // Create Grid
 w = Window("Grid", Rect(
@@ -358,22 +383,20 @@ w = Window("Grid", Rect(
 v = UserView(w, Rect(0, 0, width, height));
 v.background = Color.grey;
 v.animate = true;
-v.frameRate = 4; // determines how many times a second the grid is rewritten; affects cell movements
-
-// make frameRate = ~harmonyDurations once those are written???
-// rate = rate + 1;
+v.frameRate = (1 / ~bassDurations[rate]); // determines how many times a second the grid is rewritten; affects cell movements
+rate = rate + 1;
 
 v.keyDownAction = { |view, char, mod, uni, key|
 	var newP = ~noteArray[~counter];
 	case
-	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123);
-		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
-	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124);
-		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
-	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125);
-		s.set(\freq, newP, \sustainTime, 0.1) }
-	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126);
-		s.set(\freq, newP, \sustainTime, 0.3) };
+	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); moveHarmony.value(coords);
+		s.set(\freq, 400, \sustainTime, rrand(0.1, 0.5)) }
+	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124); moveHarmony.value(coords);
+		s.set(\freq, 500, \sustainTime, rrand(0.1, 0.5)) }
+	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125); moveHarmony.value(coords);
+		s.set(\freq, 600, \sustainTime, 0.1) }
+	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126); moveHarmony.value(coords);
+		s.set(\freq, 700, \sustainTime, 0.3) };
 };
 
 // This function is called frameRate times per second
@@ -491,8 +514,7 @@ v.drawFunc = {
 		// Determine the new coordinate for the harmony cell based on pitch relationships
 
 		//
-		case
-		{ hCount == 0 }  { }
+/*		{ hCount == 0 }  { }
 		{ (hPitch[hCount - 1] < hPitch[hCount]) && ((hPitch[hCount] - hPitch[hCount - 1]) < 3) }
 			{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]} // X moves to the right
 		{ hPitch[hCount - 1] < hPitch[hCount] }
@@ -502,7 +524,23 @@ v.drawFunc = {
 		{ hPitch[hCount - 1] > hPitch[hCount] }
 		    { y1 = coords[ (coords.indexOf(y1) - 1) % 9 ] }; // Y moves down
 
-		hCount = (hCount + 1) % hPitch.size;
+		hCount = (hCount + 1) % hPitch.size;*/
+
+/*var moveHarmony = { | hCount, ~harmony_array |
+		case
+		{ hCount == 0 }  { }
+		{ (~harmony_array[hCount - 1] < ~harmony_array[hCount]) && ((~harmony_array[hCount] - ~harmony_array[hCount - 1]) < 3) }
+			{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ] } // X moves to the right
+		{ ~harmony_array[hCount - 1] < ~harmony_array[hCount] }
+		    { y1 = coords[ (coords.indexOf(y1) + 1) % 9 ] } // Y moves up
+		{ ~harmony_array[hCount - 1] > ~harmony_array[hCount] && ((~harmony_array[hCount - 1] - ~harmony_array[hCount]) < 3) }
+		    { x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] } // X moves to the left
+		{ ~harmony_array[hCount - 1] > ~harmony_array[hCount] }
+		    { y1 = coords[ (coords.indexOf(y1) - 1) % 9 ] }; // Y moves down
+		};*/
+/*		hCount = (hCount + 1) % ~harmony_array.size;
+		("h: " + hCount).postln;
+		~counter.postln;*/
 
 		e = Synth(\mario);
 		// Determine the new coordinate for the bass cell based on pitch relationships
