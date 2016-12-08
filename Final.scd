@@ -82,6 +82,11 @@ b = Button.new(x,Rect(155,320,90,30))
 )
 
 
+
+
+
+
+/////////////////////////SYNTHS///////////////////////////
 (
 //plz initialize once
 ~noteArray = [60];
@@ -139,6 +144,165 @@ SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 11
 )
 
 
+
+
+
+
+
+/////////////////////////////BASS//////////////////////////////
+(
+//GENERATING BASS
+var currentTime = 200;
+var bifurcationTimes =[300, 344, 354, 359, 362, 363, 374, 375, 383, 384, 385, 386, 400];
+var timeIndex = 0;
+var nextTime = bifurcationTimes[timeIndex];
+var currentDur = 1;
+var bifurcationDurations = [1, 0.5, 0.25, 0.125, 0.0625, 0.167, 0.0625, 0.2, 0.0625, 0.33, 0.167, 0.083, 0.0625];
+var durSize;
+var notesIndex = 0;
+~bassDurations = [];
+~bassNotes = [];
+
+//fill array of bass durations
+while({currentTime < 400}, {
+	while ({currentTime < nextTime},
+		{~bassDurations = ~bassDurations.add(currentDur);
+			currentTime = currentTime + currentDur;
+		});
+	timeIndex = timeIndex + 1;
+	currentDur = bifurcationDurations[timeIndex];
+	nextTime = bifurcationTimes[timeIndex];
+});
+// ~bassDurations.postln;
+~bassDurations = ~bassDurations / 4;
+durSize = ~bassDurations.size;
+// durSize.postln;
+
+while ({notesIndex < durSize},
+	{~bassNotes = ~bassNotes.add([1, 4, 5].choose);
+		notesIndex = notesIndex + 1;
+});
+
+~bassNotes.postln;
+~bassDurations.postln;
+
+/*Changing tempo of bass based on the bifurcations of the logistic map.
+Speeds up every time the number of attracting points doubles
+
+0-1: none
+1-3: 1
+3-3.44 (1 + sqrt(6)): 2
+3.44-3.544: 4
+3.544-3.596: 8
+3.596-3.626: chaos
+3.626-3.63: 6
+3.63-3.633:12
+3.633-3.738: chaos
+3.738-3.741: 5
+3.741-3.744:10
+3.744-3.828: chaos
+3.828-3.841: 3
+3.841-3.848: 6
+3.848-3.857: 12/devolve into chaos
+3.857-4: chaos
+*/
+)
+
+
+
+
+
+
+////////////////////PERCUSSION////////////////////////
+(
+//Generating Percussion Using Cellular Automata
+var iterateRuleArray = 0;
+var iterateRule;
+var currRule = [];
+var iterateDrumNotes = 0;
+var generations = rrand(4, 10);
+var currGen = 0;
+var index = 0;
+
+~drumNotes = [];
+~bassLevel;
+~snareLevel;
+~hatLevel;
+~tomLevel;
+~rules = [];
+generations.postln;
+
+//generate rules
+while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
+	{iterateRule = 0;
+		while ({iterateRule < 2},
+			{currRule = currRule.add(rrand(0, 1));
+				iterateRule = iterateRule + 1;
+		});
+		~rules = ~rules.add(currRule);
+		iterateRuleArray = iterateRuleArray + 1;
+	}
+);
+
+//generate initial state for drumNotes array
+
+while ({iterateDrumNotes < 240}, //4 minutes of music
+	{~drumNotes = ~drumNotes.add(rrand(0, 1));
+		iterateDrumNotes = iterateDrumNotes + 1;
+});
+
+~drumNotes.postln;
+
+/*//do rules for random number of generations
+while ({currGen < generations},
+	{//update snareLevel, hatLevel, and tomLevel?
+		if (currGen == (generations - 3),
+			{~snareLevel = ~drumNotes;});
+		if (currGen == (generations - 2),
+			{~hatLevel = ~drumNotes;});
+		if (currGen == (generations - 1),
+			{~tomLevel = ~drumNotes;});
+		//change array
+		while ({index < 239}, //don't do it for the last one because no pair
+			{if (~drumNotes[index] == 0,
+				{
+					//00
+					if (~drumNotes[index + 1] == 0,
+						{currRule = ~rules[0];});
+					//01
+					if (~drumNotes[index + 1] == 1,
+						{currRule = ~rules[1];});
+			});
+			if (~drumNotes[index] == 1,
+				{
+					//10
+					if (~drumNotes[index + 1] == 0,
+						{currRule = ~rules[2];});
+					//11
+					if (~drumNotes[index + 1] == 1,
+						{currRule = ~rules[3];});
+			});
+			~drumNotes.put(index, currRule[0]);
+			~drumNotes.put(index + 1, currRule[1]);
+			index = index + 1;
+		});
+		"Generation ".post;
+		currGen.post;
+		" ".post;
+		~drumNotes.postln;
+		currGen = currGen + 1;
+});*/
+
+~bassLevel = ~drumNotes;
+~snareLevel = reverse(~drumNotes);
+~hatLevel = ~drumNotes;
+~tomLevel = ~drumNotes;
+)
+
+
+
+
+//////////////////////////GUI///////////////////////
 (
 //GUI STUFF
 var hPitch = ~harmony_array; // placeholder pitch array for the harmony line
@@ -358,13 +522,13 @@ var moveHarmony = { |coords|
 	case
 	{ ~counter < 4 }  { }
 	{ (~harmony_array[~counter - 4 - 1] < ~harmony_array[~counter - 4]) && ((~harmony_array[~counter - 4] - ~harmony_array[~counter - 4 - 1]) < 3) }
-	{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]; h.set(\freq, 440) } // X moves to the right
+	{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]; h.set(\freq, 523.25) } // X moves to the right
 	{ ~harmony_array[~counter - 4 - 1] < ~harmony_array[~counter - 4] }
-	{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ]; h.set(\freq, 540) } // Y moves up
+	{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ]; h.set(\freq, 440) } // Y moves up
 	{ ~harmony_array[~counter - 4 - 1] > ~harmony_array[~counter - 4] && ((~harmony_array[~counter - 4 - 1] - ~harmony_array[~counter - 4]) < 3) }
-	{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ]; h.set(\freq, 640) } // X moves to the left
+	{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ]; h.set(\freq, 739.99) } // X moves to the left
 	{ ~harmony_array[~counter - 4 - 1] > ~harmony_array[~counter - 4] }
-	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ]; h.set(\freq, 740) }; // Y moves down
+	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ]; h.set(\freq, 783.99) }; // Y moves down
 
 	~harmony_array[~counter - 4].postln;
 	("H: " + ~harmony_array).postln;
@@ -390,13 +554,13 @@ v.keyDownAction = { |view, char, mod, uni, key|
 	var newP = ~noteArray[~counter];
 	case
 	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); moveHarmony.value(coords);
-		s.set(\freq, 400, \sustainTime, rrand(0.1, 0.5)) }
+		s.set(\freq, 261.63, \sustainTime, rrand(0.1, 0.5)) }
 	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124); moveHarmony.value(coords);
-		s.set(\freq, 500, \sustainTime, rrand(0.1, 0.5)) }
+		s.set(\freq, 349.23, \sustainTime, rrand(0.1, 0.5)) }
 	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125); moveHarmony.value(coords);
-		s.set(\freq, 600, \sustainTime, 0.1) }
+		s.set(\freq, 392, \sustainTime, 0.1) }
 	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126); moveHarmony.value(coords);
-		s.set(\freq, 700, \sustainTime, 0.3) };
+		s.set(\freq, 783.99, \sustainTime, 0.3) };
 };
 
 // This function is called frameRate times per second
@@ -508,7 +672,6 @@ v.drawFunc = {
 		});
 
 
-
 		// THESE SHOULD BE CALLED ONLY WHEN DURATION CHANGES:
 
 		// Determine the new coordinate for the harmony cell based on pitch relationships
@@ -542,25 +705,25 @@ v.drawFunc = {
 		("h: " + hCount).postln;
 		~counter.postln;*/
 
-		e = Synth(\mario);
+		e = Synth(\drums);
 		// Determine the new coordinate for the bass cell based on pitch relationships
 		case
 		{ bCount == 0 }  { }
 		{ (bPitch[bCount - 1] < bPitch[bCount]) && ((bPitch[bCount] - bPitch[bCount - 1]) < 3) }
 		    { x2 = coords[ (coords.indexOf(x2) + 1) % 9 ];
-			e.set(\freq, 400 + bPitch[bCount], \sustainTime, 0.1);
+			e.set(\tomLevel, 1 + bPitch[bCount], \sustainTime, 0.1);
 		}
 		{ bPitch[bCount - 1] < bPitch[bCount] }
 		    { y2 = coords[ (coords.indexOf(y2) + 1) % 9 ];
-			e.set(\freq, 400 + bPitch[bCount], \sustainTime, 0.1);
+			e.set(\tomLevel, 1 + bPitch[bCount], \sustainTime, 0.1);
 		}
 		{ bPitch[bCount - 1] > bPitch[bCount] && ((bPitch[bCount - 1] - bPitch[bCount]) < 3) }
 		    { x2 = coords[ (coords.indexOf(x2) - 1) % 9 ];
-			e.set(\freq, 400 + bPitch[bCount], \sustainTime, 0.1);
+			e.set(\tomLevel, 1 + bPitch[bCount], \sustainTime, 0.1);
 		}
 		{ bPitch[bCount - 1] > bPitch[bCount] }
 		    { y2 = coords[ (coords.indexOf(y2) - 1) % 9 ];
-			e.set(\freq, 400 + bPitch[bCount], \sustainTime, 0.1);
+			e.set(\tomLevel, 1 + bPitch[bCount], \sustainTime, 0.1);
 		};
 
 		bCount = (bCount + 1) % bPitch.size;
@@ -570,8 +733,10 @@ v.drawFunc = {
 		~drumCounter = 0;
 		case
 		{ pCount == 0 }  { }
-		{ pPitch[pCount] == 0 && pPitch[pCount - 1] == 1 }  { x3 = coords[ (coords.indexOf(x3) - 1) % 9 ]; m.set(\bassLevel, 0, \snareLevel, rrand(0, 1).value, \tomLevel, rrand(0, 1).value, \hatLevel, rrand(0, 1).value);}
-		{ pPitch[pCount] == 1 && pPitch[pCount - 1] == 0 }  { x3 = coords[ (coords.indexOf(x3) + 1) % 9 ]; m.set(\bassLevel, 1, \snareLevel, rrand(0, 1).value, \tomLevel, rrand(0, 1).value, \hatLevel, rrand(0, 1).value); };
+		{ pPitch[pCount] == 0 && pPitch[pCount - 1] == 1 }  { x3 = coords[ (coords.indexOf(x3) - 1) % 9 ];
+			m.set(\bassLevel, 0, \snareLevel, rrand(0, 1).value, \tomLevel, rrand(0, 1).value, \hatLevel, rrand(0, 1).value);}
+		{ pPitch[pCount] == 1 && pPitch[pCount - 1] == 0 }  { x3 = coords[ (coords.indexOf(x3) + 1) % 9 ];
+			m.set(\bassLevel, 1, \snareLevel, rrand(0, 1).value, \tomLevel, rrand(0, 1).value, \hatLevel, rrand(0, 1).value); };
 
 		pCount = (pCount + 1) % pPitch.size;
 
@@ -588,11 +753,6 @@ v.drawFunc = {
 )
 
 /*********************************HARMONY*************************************/
-~harmony_array = [60, 60, 60, 60];
-(
-~harmony_array = ~harmony_array ++ ~noteArray[~counter + 8];
-)
-
 
 (
 //GENERATING BASS
@@ -659,10 +819,9 @@ SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 11
 	var    sig,
 	env = Env.adsr(0.01, 0.3, 0.4, 0.1);
 	freq = Lag.kr(freq, slideTime);
-	sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp
-	* EnvGen.kr(env, gate, doneAction: 2);
+	sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp * EnvGen.kr(env, gate, doneAction: 2);
 	sig = LPF.ar(sig, ffreq);
-	Out.ar(0, sig ! 2)
+	Out.ar(0, sig ! 2 * )
 }).add;
 
 // ~playBass = {
@@ -682,91 +841,6 @@ SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 11
 
 )
 
-
-(
-//Generating Percussion Using Cellular Automata
-var iterateRuleArray = 0;
-var iterateRule;
-var currRule = [];
-var iterateDrumNotes = 0;
-var generations = rrand(4, 10);
-var currGen = 0;
-var index = 0;
-
-~drumNotes = [];
-~bassLevel;
-~snareLevel;
-~hatLevel;
-~tomLevel;
-~rules = [];
-generations.postln;
-
-//generate rules
-while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
-	{iterateRule = 0;
-		while ({iterateRule < 2},
-			{currRule = currRule.add(rrand(0, 1));
-				iterateRule = iterateRule + 1;
-		});
-		~rules = ~rules.add(currRule);
-		iterateRuleArray = iterateRuleArray + 1;
-	}
-);
-
-//generate initial state for drumNotes array
-
-while ({iterateDrumNotes < 240}, //4 minutes of music
-	{~drumNotes = ~drumNotes.add(rrand(0, 1));
-		iterateDrumNotes = iterateDrumNotes + 1;
-});
-
-~drumNotes.postln;
-
-/*//do rules for random number of generations
-while ({currGen < generations},
-	{//update snareLevel, hatLevel, and tomLevel?
-		if (currGen == (generations - 3),
-			{~snareLevel = ~drumNotes;});
-		if (currGen == (generations - 2),
-			{~hatLevel = ~drumNotes;});
-		if (currGen == (generations - 1),
-			{~tomLevel = ~drumNotes;});
-		//change array
-		while ({index < 239}, //don't do it for the last one because no pair
-			{if (~drumNotes[index] == 0,
-				{
-					//00
-					if (~drumNotes[index + 1] == 0,
-						{currRule = ~rules[0];});
-					//01
-					if (~drumNotes[index + 1] == 1,
-						{currRule = ~rules[1];});
-			});
-			if (~drumNotes[index] == 1,
-				{
-					//10
-					if (~drumNotes[index + 1] == 0,
-						{currRule = ~rules[2];});
-					//11
-					if (~drumNotes[index + 1] == 1,
-						{currRule = ~rules[3];});
-			});
-			~drumNotes.put(index, currRule[0]);
-			~drumNotes.put(index + 1, currRule[1]);
-			index = index + 1;
-		});
-		"Generation ".post;
-		currGen.post;
-		" ".post;
-		~drumNotes.postln;
-		currGen = currGen + 1;
-});*/
-
-~bassLevel = ~drumNotes;
-~snareLevel = reverse(~drumNotes);
-~hatLevel = ~drumNotes;
-~tomLevel = ~drumNotes;
-)
 
 (//Drum Synthdef
 ~drumSynth = SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLevel = 0, pan1 = 0, pan2 = 0, pan3 = 0, pan4 = 0|
