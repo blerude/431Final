@@ -719,4 +719,3 @@ SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLev
 ).play;
 
 )
-
