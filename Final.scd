@@ -667,6 +667,8 @@ SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 11
 ~playBass.value;
 
 )
+
+
 (
 //Generating Percussion Using Cellular Automata
 var iterateRuleArray = 0;
@@ -751,35 +753,33 @@ while ({currGen < generations},
 ~hatLevel = ~drumNotes;
 ~tomLevel = ~drumNotes;
 )
+
 (//Drum Synthdef
 SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLevel = 0, pan1 = 0, pan2 = 0, pan3 = 0, pan4 = 0|
 
- var env1, env2, env3, env4, bass, snare, hat, tom, bassOut, snareOut, hatOut, tomOut, mixer;
- env1 = EnvGen.kr(Env.perc(0.001, 0.2, 1, -4), 1, doneAction:2);
- env2 = EnvGen.kr(Env.perc(0.001, 0.5, 1, -1), 1, doneAction:2);
- env3 = EnvGen.kr(Env.perc(0.002, 0.3, 1, -2), 1, doneAction:2);
- env4 = EnvGen.kr(Env.perc(0.001, 0.1, 1, -5), 1, doneAction:2);
+	var env1, env2, env3, env4, bass, snare, hat, tom, bassOut, snareOut, hatOut, tomOut, mixer;
+	env1 = EnvGen.kr(Env.perc(0.001, 0.2, 1, -4), 1, doneAction:2);
+	env2 = EnvGen.kr(Env.perc(0.001, 0.5, 1, -1), 1, doneAction:2);
+	env3 = EnvGen.kr(Env.perc(0.002, 0.3, 1, -2), 1, doneAction:2);
+	env4 = EnvGen.kr(Env.perc(0.001, 0.1, 1, -5), 1, doneAction:2);
 
+	bass = SinOsc.ar(80) + Crackle.ar(1, 0.5);
+	bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
 
-bass = SinOsc.ar(80) + Crackle.ar(1, 0.5);
-bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
+	snare = SinOsc.ar(120) - WhiteNoise.ar(0.5, 0.5);
+	snareOut = Pan2.ar(snare*env4, pan2, snareLevel);
 
- snare = SinOsc.ar(120) - WhiteNoise.ar(0.5, 0.5);
- snareOut = Pan2.ar(snare*env4, pan2, snareLevel);
+	hat = Klank.ar(`[ [ 6563, 9875 ],
+		[ 0.6, 0.5 ],
+		[ 0.002, 0.003] ], PinkNoise.ar(1));
+	hatOut = Pan2.ar(hat*env3, pan2, hatLevel);
 
- hat = Klank.ar(`[ [ 6563, 9875 ],
-  [ 0.6, 0.5 ],
-  [ 0.002, 0.003] ], PinkNoise.ar(1));
- hatOut = Pan2.ar(hat*env3, pan2, hatLevel);
+	tom = SinOsc.ar(440);
+	tomOut = Pan2.ar(tom*env4, pan4, tomLevel);
 
- tom = SinOsc.ar(440);
- tomOut = Pan2.ar(tom*env4, pan4, tomLevel);
+	mixer = Mix.new([bassOut, snareOut, hatOut, tomOut]);
 
- mixer = Mix.new([bassOut, snareOut, hatOut, tomOut]);
-
-
- Out.ar(out, mixer);
-
+	Out.ar(out, mixer);
 }).store;
 
  p = Pbind(
@@ -791,11 +791,5 @@ bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
   \hatLevel, Pseq ([Pseq(~drumNotes)], inf),
   \tomLevel, Pseq ([Pseq(~drumNotes)], inf)
 ).play;
-
-	\bassLevel, Pseq ([Pseq(~bassLevel)], inf),
-	\snareLevel, Pseq ([Pseq(~snareLevel), Pseq(~snareLevel)], inf),
-  \hatLevel, Pseq ([Pseq(~hatLevel)], inf),
-  \tomLevel, Pseq ([Pseq(~tomLevel)], inf)
-
 
 )
