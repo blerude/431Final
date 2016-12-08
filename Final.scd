@@ -451,19 +451,23 @@ x.free;
 HID.closeAll
 )
 
+
+/********************************************** MELODY **************************************************/
+~notearray = [60];
+~counter = 0;
 (
-/****************************************************** MELODY ************************************************************/
 /*
 L-System to determine note played when joy stick is moved one of four directions
 U, D, L R : Up, down, left, right commands inputted from HID
 A, B, C, D : set of L-System rules for each direction
 */
-
 //example test input
-var input = "D";
+var input = "L";
 
 var l_sys_rule = [];
 var note=[];
+
+var harmony_note = [60, 64, ];
 
 //rules for L-System for each direction
 var nextA = { arg last_note;
@@ -524,32 +528,41 @@ var nextD = { arg last_note;
 
 l_sys_rule = l_sys_rule ++ input;
 
-~lastplayed = 60;
 
 if(l_sys_rule[0].asSymbol == 'U', {
-	note = note ++ nextA.(~lastplayed);
-	~lastplayed = note[0];
+	note = note ++ nextA.(~notearray[~counter]);
+	~notearray = ~notearray ++ note[0];
+	~counter = ~counter + 1;
 });
 
 if(l_sys_rule[0].asSymbol == 'D', {
-	note = note ++ nextB.(~lastplayed);
-	~lastplayed = note[0];
+	note = note ++ nextB.(~notearray[~counter]);
+	~notearray = ~notearray ++ note[0];
+	~counter = ~counter + 1;
 });
 
 if(l_sys_rule[0].asSymbol == 'L', {
-	note = note ++ nextC.(~lastplayed);
-	~lastplayed = note[0];
+	note = note ++ nextC.(~notearray[~counter]);
+	~notearray = ~notearray ++ note[0];
+	~counter = ~counter + 1;
 });
 
 if(l_sys_rule[0].asSymbol == 'R', {
-	note = note ++ nextD.(~lastplayed);
-	~lastplayed = note[0];
+	note = note ++ nextD.(~notearray[~counter]);
+	~notearray = ~notearray ++ note[0];
+	~counter = ~counter + 1;
 });
 
 note.postln;
+~notearray.postln;
+~counter.postln;
 )
 
-
+/*********************************HARMONY*************************************/
+~harmony_array = [60, 60, 60, 60];
+(
+~harmony_array = ~harmony_array ++ ~notearray[~counter + 8];
+)
 
 
 (
@@ -613,7 +626,6 @@ var currRule = [];
 var iterateDrumNotes = 0;
 var generations = rrand(1, 10);
 var currGen = 0;
-var index = 0;
 var currRule;
 
 ~drumNotes = [];
@@ -698,4 +710,4 @@ bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
  Out.ar(out, mixer);
 
  }).store;
-) 
+)
