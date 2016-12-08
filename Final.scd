@@ -80,9 +80,20 @@ b = Button.new(x,Rect(155,320,90,30))
 	Window.closeAll; // Close window upon exit!
 });
 )
+(
 //plz initialize once
 ~notearray = [60];
 ~counter = 0;
+
+// Mario-inspired SynthDef for the melody
+SynthDef(\mario, { |out, amp=0.3, freq=440|
+	var snd;
+	snd = LFPulse.ar(freq)!2;
+	snd = snd * EnvGen.ar(Env.linen(0.001, 0.1, 0.03), doneAction:2);
+	OffsetOut.ar(out, snd*amp);
+}).store;
+)
+
 
 (
 //GUI STUFF
@@ -199,6 +210,8 @@ var melodySong =  {arg input;
 	U, D, L R : Up, down, left, right commands inputted from HID
 	A, B, C, D : set of L-System rules for each direction
 	*/
+
+	//var input = 123;
 	var l_sys_rule = [];
 	var note=[];
 
@@ -292,9 +305,21 @@ var melodySong =  {arg input;
 		"moved right".postln;
 	});
 
-	//note.postln;
-	//~notearray.postln;
-	//~counter.postln;
+	note.postln;
+	~notearray.postln;
+	~counter.postln;
+
+	s = Synth(\mario, [\dur, 0.5, \pitch, ~notearray[~counter]]);
+
+
+
+
+/*// Pdef for Track1
+	Pdef(\voice1, Pbind(
+		\instrument, \mario,
+		\dur, 0.5,
+		\midinote, note)
+	).play;*/
 };
 
 
@@ -312,10 +337,10 @@ v.frameRate = 2; // determines how many times a second the grid is rewritten; af
 
 v.keyDownAction = { |view, char, mod, uni, key|
 	case
-	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); }
-	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124);  }
-	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125);  }
-	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126);  };
+	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); 	s.set(\pitch, ~notearray[~counter]); }
+	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124);	s.set(\pitch, ~notearray[~counter]);  }
+	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125);  s.set(\pitch, ~notearray[~counter]);}
+	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126); 	s.set(\pitch, ~notearray[~counter]); };
 };
 
 // This function is called frameRate times per second
