@@ -611,15 +611,21 @@ Speeds up every time the number of attracting points doubles
 
 (
 //Generating Percussion Using Cellular Automata
-~drumNotes = [];
-
-//generate rules
-~rules = [];
 var iterateRuleArray = 0;
 var iterateRule;
+var currRule = [];
+var iterateDrumNotes = 0;
+var generations = rrand(1, 10);
+var currGen = 0;
+var index = 0;
+var currRule;
+
+~drumNotes = [];
+~rules = [];
+
+//generate rules
 while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
-	{var currRule = [];
-		iterateRule = 0;
+	{iterateRule = 0;
 		while ({iterateRule < 2},
 			{currRule = currRule.add(rrand(0, 1));
 				iterateRule = iterateRule + 1;
@@ -630,19 +636,16 @@ while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
 );
 
 //generate initial state for drumNotes array
-var iterateDrumNotes = 0;
+
 while ({iterateDrumNotes < 240}, //4 minutes of music
 	{~drumNotes = ~drumNotes.add(rrand(0, 1));
 		iterateDrumNotes = iterateDrumNotes + 1;
 });
 
 //do rules for random number of generations
-var generations = rrand(1, 10);
-var currGen = 0;
+
 while ({currGen < generations},
-	{var index = 0;
-		while ({index < 239}, //don't do it for the last one because no pair
-			var currRule;
+	{while ({index < 239}, //don't do it for the last one because no pair
 			{if (~drumNotes[index] == 0,
 				{
 					//00
@@ -667,4 +670,36 @@ while ({currGen < generations},
 		});
 		currGen = currGen + 1;
 });
+)
+
+(//Drum Synthdef
+SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLevel = 0, pan1 = 0, pan2 = 0, pan3 = 0, pan4 = 0|
+
+ var env1, env2, env3, env4, bass, snare, hat, tom, bassOut, snareOut, hatOut, tomOut, mixer;
+ env1 = EnvGen.kr(Env.perc(0.001, 0.2, 1, -4), 1, doneAction:2);
+ env2 = EnvGen.kr(Env.perc(0.001, 0.5, 1, -1), 1, doneAction:2);
+ env3 = EnvGen.kr(Env.perc(0.002, 0.3, 1, -2), 1, doneAction:2);
+ env4 = EnvGen.kr(Env.perc(0.001, 0.1, 1, -5), 1, doneAction:2);
+
+
+bass = SinOsc.ar(80) + Crackle.ar(1, 0.5);
+bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
+
+ snare = SinOsc.ar(120) - WhiteNoise.ar(0.5, 0.5);
+ snareOut = Pan2.ar(snare*env4, pan2, snareLevel);
+
+ hat = Klank.ar(`[ [ 6563, 9875 ],
+  [ 0.6, 0.5 ],
+  [ 0.002, 0.003] ], PinkNoise.ar(1));
+ hatOut = Pan2.ar(hat*env3, pan2, hatLevel);
+
+ tom = SinOsc.ar(440);
+ tomOut = Pan2.ar(tom*env4, pan4, tomLevel);
+
+ mixer = Mix.new([bassOut, snareOut, hatOut, tomOut]);
+
+
+ Out.ar(out, mixer);
+
+ }).store;
 )
