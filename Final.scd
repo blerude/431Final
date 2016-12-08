@@ -575,8 +575,6 @@ note.postln;
 
 (
 //GENERATING BASS
-//Dev
-
 //variables
 var durations = [0, 1, 0.5, 0.25, 0.125, 0.0625,
 	0.1667, 0.08333, 0.0625,
@@ -594,6 +592,26 @@ SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 11
     sig = LPF.ar(sig, ffreq);
     Out.ar(0, sig ! 2)
 }).add;
+var currentTime = 200;
+var bifurcationTimes =[300, 344, 354, 359, 362, 363, 374, 375, 383, 384, 385, 386, 400];
+var timeIndex = 0;
+var nextTime = bifurcationTimes[timeIndex];
+var currentDur = 1;
+var bifurcationDurations = [1, 0.5, 0.25, 0.125, 0.0625, 0.167, 0.0625, 0.2, 0.0625, 0.33, 0.167, 0.083, 0.0625];
+~bassDurations = [];
+
+//fill array of bass durations
+while({currentTime < 400}, {
+	while ({currentTime < nextTime},
+		{~bassDurations = ~bassDurations.add(currentDur);
+			currentTime = currentTime + currentDur;
+		});
+	timeIndex = timeIndex + 1;
+	currentDur = bifurcationDurations[timeIndex];
+	nextTime = bifurcationTimes[timeIndex];
+});
+~bassDurations.postln;
+~bassDurations = ~bassDurations / 4;
 
 /*Changing tempo of bass based on the bifurcations of the logistic map.
 Speeds up every time the number of attracting points doubles
@@ -627,16 +645,45 @@ Speeds up every time the number of attracting points doubles
 )
 
 (
+//Synthdef:
+SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15,
+        detune = 1.005, preamp = 4|
+    var    sig,
+        env = Env.adsr(0.01, 0.3, 0.4, 0.1);
+    freq = Lag.kr(freq, slideTime);
+    sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp
+        * EnvGen.kr(env, gate, doneAction: 2);
+    sig = LPF.ar(sig, ffreq);
+    Out.ar(0, sig ! 2)
+}).add;
+
+~playBass = {
+	Pbind(
+		\instrument, \bass,
+		\dur, ~bassDurations,
+		\amp, 0.25).play;
+};
+
+~playBass.value;
+
+)
+(
 //Generating Percussion Using Cellular Automata
 var iterateRuleArray = 0;
 var iterateRule;
 var currRule = [];
 var iterateDrumNotes = 0;
-var generations = rrand(1, 10);
+var generations = rrand(4, 10);
 var currGen = 0;
+var index = 0;
 
 ~drumNotes = [];
+~bassLevel;
+~snareLevel;
+~hatLevel;
+~tomLevel;
 ~rules = [];
+generations.postln;
 
 //generate rules
 while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
@@ -657,10 +704,19 @@ while ({iterateDrumNotes < 240}, //4 minutes of music
 		iterateDrumNotes = iterateDrumNotes + 1;
 });
 
-//do rules for random number of generations
+~drumNotes.postln;
 
+/*//do rules for random number of generations
 while ({currGen < generations},
-	{while ({index < 239}, //don't do it for the last one because no pair
+	{//update snareLevel, hatLevel, and tomLevel?
+		if (currGen == (generations - 3),
+			{~snareLevel = ~drumNotes;});
+		if (currGen == (generations - 2),
+			{~hatLevel = ~drumNotes;});
+		if (currGen == (generations - 1),
+			{~tomLevel = ~drumNotes;});
+		//change array
+		while ({index < 239}, //don't do it for the last one because no pair
 			{if (~drumNotes[index] == 0,
 				{
 					//00
@@ -683,10 +739,18 @@ while ({currGen < generations},
 			~drumNotes.put(index + 1, currRule[1]);
 			index = index + 1;
 		});
+		"Generation ".post;
+		currGen.post;
+		" ".post;
+		~drumNotes.postln;
 		currGen = currGen + 1;
-});
-)
+});*/
 
+~bassLevel = ~drumNotes;
+~snareLevel = reverse(~drumNotes);
+~hatLevel = ~drumNotes;
+~tomLevel = ~drumNotes;
+)
 (//Drum Synthdef
 SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLevel = 0, pan1 = 0, pan2 = 0, pan3 = 0, pan4 = 0|
 
@@ -718,19 +782,20 @@ bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
 
 }).store;
 
- a = Pseq ([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]);
- b = Pseq ([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0]);
- c = Pseq ([0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0]);
- d = Pseq ([0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1]);
- e = Pseq ([0, 0,  1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1]);
-
  p = Pbind(
   \instrument, \drums,
   \dur, 0.12,
+
 	\bassLevel, Pseq ([Pseq(~drumNotes)], inf),
 	\snareLevel, Pseq ([Pseq(~drumNotes), Pseq(~drumNotes)], inf),
   \hatLevel, Pseq ([Pseq(~drumNotes)], inf),
   \tomLevel, Pseq ([Pseq(~drumNotes)], inf)
 ).play;
+
+	\bassLevel, Pseq ([Pseq(~bassLevel)], inf),
+	\snareLevel, Pseq ([Pseq(~snareLevel), Pseq(~snareLevel)], inf),
+  \hatLevel, Pseq ([Pseq(~hatLevel)], inf),
+  \tomLevel, Pseq ([Pseq(~tomLevel)], inf)
+
 
 )
