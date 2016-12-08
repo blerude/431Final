@@ -80,6 +80,9 @@ b = Button.new(x,Rect(155,320,90,30))
 	Window.closeAll; // Close window upon exit!
 });
 )
+//plz initialize once
+~notearray = [60];
+~counter = 0;
 
 (
 //GUI STUFF
@@ -188,6 +191,112 @@ var tracePath = { | xArray, yArray, width, height |
 	} );
 };
 
+/********************************************** MELODY **************************************************/
+
+var melodySong =  {arg input;
+	/*
+	L-System to determine note played when joy stick is moved one of four directions
+	U, D, L R : Up, down, left, right commands inputted from HID
+	A, B, C, D : set of L-System rules for each direction
+	*/
+	var l_sys_rule = [];
+	var note=[];
+
+	var harmony_note = [60, 64, ];
+
+	//rules for L-System for each direction
+	var nextA = { arg last_note;
+		var probabilities = Dictionary.newFrom([
+			60, [62],
+			62, [60],
+			64, [65],
+			65, [67],
+			67, [69],
+			69, [71],
+			71, [72],
+			72, [72]
+		]);
+		probabilities.at(last_note).choose;
+	};
+
+	var nextB = { arg last_note;
+		var probabilities = Dictionary.newFrom([
+			60, [60],
+			62, [60],
+			64, [62],
+			65, [64],
+			67, [65],
+			69, [67],
+			71, [69],
+			72, [71]
+		]);
+		probabilities.at(last_note).choose;
+	};
+
+	var nextC = { arg last_note;
+		var probabilities = Dictionary.newFrom([
+			60, [64, 67],
+			62, [64, 60],
+			64, [60, 67],
+			65, [67, 64],
+			67, [60, 64, 72],
+			69, [71, 67],
+			71, [72],
+			72, [72, 60, 67]
+		]);
+		probabilities.at(last_note).choose;
+	};
+
+	var nextD = { arg last_note;
+		var probabilities = Dictionary.newFrom([
+			60, [62, 72],
+			62, [64],
+			64, [60, 65],
+			65, [67, 60],
+			67, [60, 64, 72],
+			69, [67],
+			71, [72, 60],
+			72, [72, 60, 67]
+		]);
+		probabilities.at(last_note).choose;
+	};
+
+	l_sys_rule = l_sys_rule ++ input;
+
+
+	if(l_sys_rule[0] == 125, {
+		note = note ++ nextA.(~notearray[~counter]);
+		~notearray = ~notearray ++ note[0];
+		~counter = ~counter + 1;
+		"moved up".postln;
+	});
+
+	if(l_sys_rule[0] == 126, {
+		note = note ++ nextB.(~notearray[~counter]);
+		~notearray = ~notearray ++ note[0];
+		~counter = ~counter + 1;
+		"moved down".postln;
+	});
+
+	if(l_sys_rule[0] == 123, {
+		note = note ++ nextC.(~notearray[~counter]);
+		~notearray = ~notearray ++ note[0];
+		~counter = ~counter + 1;
+		"moved left".postln;
+	});
+
+	if(l_sys_rule[0] == 124, {
+		note = note ++ nextD.(~notearray[~counter]);
+		~notearray = ~notearray ++ note[0];
+		~counter = ~counter + 1;
+		"moved right".postln;
+	});
+
+	//note.postln;
+	//~notearray.postln;
+	//~counter.postln;
+};
+
 
 // Create Grid
 w = Window("Grid", Rect(
@@ -203,10 +312,10 @@ v.frameRate = 2; // determines how many times a second the grid is rewritten; af
 
 v.keyDownAction = { |view, char, mod, uni, key|
 	case
-	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ] }
-	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ] }
-	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ] }
-	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ] };
+	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); }
+	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124);  }
+	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125);  }
+	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126);  };
 };
 
 // This function is called frameRate times per second
@@ -460,111 +569,7 @@ HID.closeAll
 )
 
 
-/********************************************** MELODY **************************************************/
-~notearray = [60];
-~counter = 0;
-(
-/*
-L-System to determine note played when joy stick is moved one of four directions
-U, D, L R : Up, down, left, right commands inputted from HID
-A, B, C, D : set of L-System rules for each direction
-*/
-//example test input
-var input = "L";
 
-var l_sys_rule = [];
-var note=[];
-
-var harmony_note = [60, 64, ];
-
-//rules for L-System for each direction
-var nextA = { arg last_note;
-	var probabilities = Dictionary.newFrom([
-		60, [62],
-		62, [60],
-		64, [65],
-		65, [67],
-		67, [69],
-		69, [71],
-		71, [72],
-		72, [72]
-	]);
-	probabilities.at(last_note).choose;
-};
-
-var nextB = { arg last_note;
-	var probabilities = Dictionary.newFrom([
-		60, [60],
-		62, [60],
-		64, [62],
-		65, [64],
-		67, [65],
-		69, [67],
-		71, [69],
-		72, [71]
-	]);
-	probabilities.at(last_note).choose;
-};
-
-var nextC = { arg last_note;
-	var probabilities = Dictionary.newFrom([
-		60, [64, 67],
-		62, [64, 60],
-		64, [60, 67],
-		65, [67, 64],
-		67, [60, 64, 72],
-		69, [71, 67],
-		71, [72],
-		72, [72, 60, 67]
-	]);
-	probabilities.at(last_note).choose;
-};
-
-var nextD = { arg last_note;
-	var probabilities = Dictionary.newFrom([
-		60, [62, 72],
-		62, [64],
-		64, [60, 65],
-		65, [67, 60],
-		67, [60, 64, 72],
-		69, [67],
-		71, [72, 60],
-		72, [72, 60, 67]
-	]);
-	probabilities.at(last_note).choose;
-};
-
-l_sys_rule = l_sys_rule ++ input;
-
-
-if(l_sys_rule[0].asSymbol == 'U', {
-	note = note ++ nextA.(~notearray[~counter]);
-	~notearray = ~notearray ++ note[0];
-	~counter = ~counter + 1;
-});
-
-if(l_sys_rule[0].asSymbol == 'D', {
-	note = note ++ nextB.(~notearray[~counter]);
-	~notearray = ~notearray ++ note[0];
-	~counter = ~counter + 1;
-});
-
-if(l_sys_rule[0].asSymbol == 'L', {
-	note = note ++ nextC.(~notearray[~counter]);
-	~notearray = ~notearray ++ note[0];
-	~counter = ~counter + 1;
-});
-
-if(l_sys_rule[0].asSymbol == 'R', {
-	note = note ++ nextD.(~notearray[~counter]);
-	~notearray = ~notearray ++ note[0];
-	~counter = ~counter + 1;
-});
-
-note.postln;
-~notearray.postln;
-~counter.postln;
-)
 
 /*********************************HARMONY*************************************/
 ~harmony_array = [60, 60, 60, 60];
