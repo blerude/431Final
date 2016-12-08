@@ -86,9 +86,9 @@ b = Button.new(x,Rect(155,320,90,30))
 
 (
 //GUI STUFF
-var hPitch = [ 0, 3, 6, 8, 12, 15 ]; // placeholder pitch array for the harmony line
+var hPitch = [ 0 ]; // placeholder pitch array for the harmony line
 var hCount = 0; // placeholder count variable for testing
-var bPitch = [ 1, 4, 1, 5, 4, 5, 1 ];
+var bPitch = ~bassNotes;
 var bCount = 0;
 var pPitch = ~drumNotes;
 var pCount = 0;
@@ -431,16 +431,18 @@ v.drawFunc = {
 		// THESE SHOULD BE CALLED ONLY WHEN DURATION CHANGES:
 
 		// Determine the new coordinate for the harmony cell based on pitch relationships
+
+		//
 		case
 		{ hCount == 0 }  { }
 		{ (hPitch[hCount - 1] < hPitch[hCount]) && ((hPitch[hCount] - hPitch[hCount - 1]) < 3) }
-			{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ] }
+			{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ] } // X moves to the right
 		{ hPitch[hCount - 1] < hPitch[hCount] }
-		    { y1 = coords[ (coords.indexOf(y1) + 1) % 9 ] }
+		    { y1 = coords[ (coords.indexOf(y1) + 1) % 9 ] } // Y moves up
 		{ hPitch[hCount - 1] > hPitch[hCount] && ((hPitch[hCount - 1] - hPitch[hCount]) < 3) }
-		    { x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] }
+		    { x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] } // X moves to the left
 		{ hPitch[hCount - 1] > hPitch[hCount] }
-		    { y1 = coords[ (coords.indexOf(y1) - 1) % 9 ] };
+		    { y1 = coords[ (coords.indexOf(y1) - 1) % 9 ] }; // Y moves down
 
 		hCount = (hCount + 1) % hPitch.size;
 
@@ -481,95 +483,6 @@ v.drawFunc = {
 	};
 };
 )
-
-(
-//CONTROLLING INTERACTION WITH JOYSTICK BASS
-//Dev
-HID.findAvailable;
-
-// if at first you don't succeed, swear -> unplug -> replug.  Repeat as necessary.
-
-
-~myhid = HID.open(1133, 49685);
-
-
-// the front trigger
-~myhid.elements[0].action = { |...args| args.postln; };
-
-// button 2: side trigger
-~myhid.elements[1].action = { |...args| args.postln; x.set(\b2, args[0])};
-
-// button 3
-~myhid.elements[2].action = { |...args| args.postln; x.set(\b3, args[0])};
-
-// button 4
-~myhid.elements[3].action = { |...args| args.postln; x.set(\b4, args[0])};
-
-// button 5
-~myhid.elements[4].action = { |...args| args.postln; x.set(\b5, args[0])};
-
-// button 6
-~myhid.elements[5].action = { |...args| args.postln; x.set(\b6, args[0])};
-
-// button 7
-~myhid.elements[6].action = { |...args| args.postln; x.set(\b7, args[0])};
-
-// button 8
-~myhid.elements[7].action = { |...args| args.postln; x.set(\b8, args[0])};
-
-// button 9
-~myhid.elements[8].action = { |...args| args.postln; x.set(\b9, args[0])};
-
-// button 10
-~myhid.elements[9].action = { |...args| args.postln; x.set(\b10, args[0])};
-
-// button 11
-~myhid.elements[10].action = { |...args| args.postln; x.set(\b11, args[0])};
-
-// button 12
-~myhid.elements[11].action = { |...args| args.postln; x.set(\b12, args[0])};
-
-// Joystick X
-~myhid.elements[12].action = { |...args| args.postln; x.set(\joyx, args[0].linlin(0,1, 40, 1000), \pan, args[0].linlin(0,1, -1,1))};
-
-// Joystick Y
-~myhid.elements[13].action = { |...args| args.postln; x.set(\joyy, args[0].linlin(0,1, 40, 1000))};
-
-// Top Joystick THingy
-~myhid.elements[14].action = { |...args| args.postln; };
-
-// Joystick Twist
-/*~myhid.elements[15].action = { |...args| args.postln; x.set(\joytwist, args[0].linlin(0,1, 40, 1000))};*/
-
-// enter args for your buttons, stick(s), etc.
-
-SynthDef(\hid, {|trig, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, joyx=400, joyy, topjoy, /*joytwist */|
-
-	var buttarray = [b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12];
-	var snd = SinOsc.ar(joyx + SinOsc.ar(joyy, /*mul:joytwist*/));
-	var butts = Array.fill(11, {|i| Pan2.ar(Saw.ar(Rand(40, 4000), buttarray[i]), rrand(-0.8, 0.8)) });
-	butts = Mix(butts);
-		Out.ar(0, Pan2.ar(snd, 1) + butts);
-
-}).add;
-
-
-x = Synth(\hid);
-x.free;
-
-//trigger adds beats to percussion
-
-
-
-// set all the actions to nil
-~myhid.elements.size.do {|i| ~myhid.elements[i].action = nil; };
-
-// or close all HID device altogether
-HID.closeAll
-)
-
-
-
 
 /*********************************HARMONY*************************************/
 ~harmony_array = [60, 60, 60, 60];
