@@ -82,14 +82,14 @@ b = Button.new(x,Rect(155,320,90,30))
 )
 (
 //plz initialize once
-~notearray = [60];
+~noteArray = [60];
 ~counter = 0;
 
 // Mario-inspired SynthDef for the melody
-SynthDef(\mario, { |out, amp=0.3, freq=440|
+SynthDef(\mario, { |out, amp=0.3, freq=60, sustainTime = 0.1|
 	var snd;
 	snd = LFPulse.ar(freq)!2;
-	snd = snd * EnvGen.ar(Env.linen(0.001, 0.1, 0.03), doneAction:2);
+	snd = snd * EnvGen.ar(Env.linen(0.001, sustainTime, 0.03), doneAction:2);
 	OffsetOut.ar(out, snd*amp);
 }).store;
 )
@@ -97,7 +97,7 @@ SynthDef(\mario, { |out, amp=0.3, freq=440|
 
 (
 //GUI STUFF
-var hPitch = [ 0 ]; // placeholder pitch array for the harmony line
+var hPitch = ~harmony_array; // placeholder pitch array for the harmony line
 var hCount = 0; // placeholder count variable for testing
 var bPitch = ~bassNotes;
 var bCount = 0;
@@ -151,8 +151,6 @@ var c3 = Color.rand;
 var c4 = Color.blue;
 var boxX = [ 4, 6, 6, 8, 4, 2, 3, 2 ]; // Barrier cell x indices
 var boxY = [ 2, 5, 6, 3, 8, 5, 4, 3 ]; // Barrier cell y indices
-
-var times = 0;
 
 // This function creates the cells using the coordinates and color assigned
 var drawCell = { | x, y, color, ind |
@@ -278,50 +276,37 @@ var melodySong =  {arg input;
 
 
 	if(l_sys_rule[0] == 125, {
-		note = note ++ nextA.(~notearray[~counter]);
-		~notearray = ~notearray ++ note[0];
-		~counter = ~counter + 1;
-		"moved up".postln;
-	});
-
-	if(l_sys_rule[0] == 126, {
-		note = note ++ nextB.(~notearray[~counter]);
-		~notearray = ~notearray ++ note[0];
+		note = note ++ nextA.(~noteArray[~counter]);
+		~noteArray = ~noteArray ++ note[0];
 		~counter = ~counter + 1;
 		"moved down".postln;
 	});
 
+	if(l_sys_rule[0] == 126, {
+		note = note ++ nextB.(~noteArray[~counter]);
+		~noteArray = ~noteArray ++ note[0];
+		~counter = ~counter + 1;
+		"moved up".postln;
+	});
+
 	if(l_sys_rule[0] == 123, {
-		note = note ++ nextC.(~notearray[~counter]);
-		~notearray = ~notearray ++ note[0];
+		note = note ++ nextC.(~noteArray[~counter]);
+		~noteArray = ~noteArray ++ note[0];
 		~counter = ~counter + 1;
 		"moved left".postln;
 	});
 
 	if(l_sys_rule[0] == 124, {
-		note = note ++ nextD.(~notearray[~counter]);
-		~notearray = ~notearray ++ note[0];
+		note = note ++ nextD.(~noteArray[~counter]);
+		~noteArray = ~noteArray ++ note[0];
 		~counter = ~counter + 1;
 		"moved right".postln;
 	});
 
-	note.postln;
-	~notearray.postln;
-	~counter.postln;
-
-	s = Synth(\mario, [\dur, 0.5, \pitch, ~notearray[~counter]]);
-
-
-
-
-/*// Pdef for Track1
-	Pdef(\voice1, Pbind(
-		\instrument, \mario,
-		\dur, 0.5,
-		\midinote, note)
-	).play;*/
+	s = Synth(\mario);
 };
 
+// var rate = 0;
 
 // Create Grid
 w = Window("Grid", Rect(
@@ -333,14 +318,22 @@ w = Window("Grid", Rect(
 v = UserView(w, Rect(0, 0, width, height));
 v.background = Color.grey;
 v.animate = true;
-v.frameRate = 2; // determines how many times a second the grid is rewritten; affects cell movements
+v.frameRate = 30; // determines how many times a second the grid is rewritten; affects cell movements
+
+// make frameRate = ~harmonyDurations once those are written???
+// rate = rate + 1;
 
 v.keyDownAction = { |view, char, mod, uni, key|
+	var newP = ~noteArray[~counter];
 	case
-	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); 	s.set(\pitch, ~notearray[~counter]); }
-	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124);	s.set(\pitch, ~notearray[~counter]);  }
-	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125);  s.set(\pitch, ~notearray[~counter]);}
-	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126); 	s.set(\pitch, ~notearray[~counter]); };
+	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123);
+		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
+	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124);
+		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
+	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125);
+		s.set(\freq, newP, \sustainTime, 0.1) }
+	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126);
+		s.set(\freq, newP, \sustainTime, 0.3) };
 };
 
 // This function is called frameRate times per second
@@ -409,7 +402,7 @@ v.drawFunc = {
 		// Melody pathway
 		Pen.strokeColor = c4;
 		Pen.moveTo(mx @ my);
-		mxArray.size.do( { |i| Pen.lineTo(mxArray[i] @ myArray[i]) } );
+		tracePath.value(mxArray, myArray, width, height);
 		Pen.perform([\stroke]);
 
 
@@ -476,12 +469,12 @@ v.drawFunc = {
 		case
 		{ bCount == 0 }  { }
 		{ (bPitch[bCount - 1] < bPitch[bCount]) && ((bPitch[bCount] - bPitch[bCount - 1]) < 3) }
-			{ x2 = coords[ (coords.indexOf(x2) + 1) % 9 ] }
+		    { x2 = coords[ (coords.indexOf(x2) + 1) % 9 ] }
 		{ bPitch[bCount - 1] < bPitch[bCount] }
 		    { y2 = coords[ (coords.indexOf(y2) + 1) % 9 ] }
-		{ bPitch[bCount - 1] > bPitch[hCount] && ((bPitch[bCount - 1] - bPitch[bCount]) < 3) }
+		{ bPitch[bCount - 1] > bPitch[bCount] && ((bPitch[bCount - 1] - bPitch[bCount]) < 3) }
 		    { x2 = coords[ (coords.indexOf(x2) - 1) % 9 ] }
-		{ bPitch[bCount - 1] > bPitch[hCount] }
+		{ bPitch[bCount - 1] > bPitch[bCount] }
 		    { y2 = coords[ (coords.indexOf(y2) - 1) % 9 ] };
 
 		bCount = (bCount + 1) % bPitch.size;
@@ -495,16 +488,14 @@ v.drawFunc = {
 
 		pCount = (pCount + 1) % pPitch.size;
 
-
 		// TODO:
-		// 1. deal with frame= rate so it changes every time the note changes-  (ben)
-		// 2. apply to bass, just like melody - (erika)
-		// 3. percussion (just moving back and forth [0,1]), melody - (erika)
-		// 3. incorporate joystick (erika) erika i have ideas for this!!!
-		       //4. sustatin the note
-		// 4. figure out 4 directional movement (talk about this) - (ben)
-		// 5. collisions! (talk about this)
-		// 6. trace the path! (ben)
+		// 1. deal with framerate so it changes every time the note changes [THURS MORNING]
+		// 2. write harmony [THURS MORNING]
+		// 3. collisions! [THURS MORNING]
+		// 4. Prezi! [THURS MORNING]
+		// 5. music to bass, harmony, percussion [THURS MORNING]
+
+		// 6. Devin fix cellular automata
 	};
 };
 )
@@ -512,7 +503,7 @@ v.drawFunc = {
 /*********************************HARMONY*************************************/
 ~harmony_array = [60, 60, 60, 60];
 (
-~harmony_array = ~harmony_array ++ ~notearray[~counter + 8];
+~harmony_array = ~harmony_array ++ ~noteArray[~counter + 8];
 )
 
 
