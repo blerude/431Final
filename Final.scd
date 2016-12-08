@@ -580,30 +580,16 @@ HID.closeAll
 
 (
 //GENERATING BASS
-//variables
-var durations = [0, 1, 0.5, 0.25, 0.125, 0.0625,
-	0.1667, 0.08333, 0.0625,
-	0.2, 0.1, 0.0625,
-	0.333, 0.1667, 0.08333, 0.0625];
-
-//Synthdef:
-SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15,
-        detune = 1.005, preamp = 4|
-    var    sig,
-        env = Env.adsr(0.01, 0.3, 0.4, 0.1);
-    freq = Lag.kr(freq, slideTime);
-    sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp
-        * EnvGen.kr(env, gate, doneAction: 2);
-    sig = LPF.ar(sig, ffreq);
-    Out.ar(0, sig ! 2)
-}).add;
 var currentTime = 200;
 var bifurcationTimes =[300, 344, 354, 359, 362, 363, 374, 375, 383, 384, 385, 386, 400];
 var timeIndex = 0;
 var nextTime = bifurcationTimes[timeIndex];
 var currentDur = 1;
 var bifurcationDurations = [1, 0.5, 0.25, 0.125, 0.0625, 0.167, 0.0625, 0.2, 0.0625, 0.33, 0.167, 0.083, 0.0625];
+var durSize;
+var notesIndex = 0;
 ~bassDurations = [];
+~bassNotes = [];
 
 //fill array of bass durations
 while({currentTime < 400}, {
@@ -615,8 +601,18 @@ while({currentTime < 400}, {
 	currentDur = bifurcationDurations[timeIndex];
 	nextTime = bifurcationTimes[timeIndex];
 });
-~bassDurations.postln;
+// ~bassDurations.postln;
 ~bassDurations = ~bassDurations / 4;
+durSize = ~bassDurations.size;
+// durSize.postln;
+
+while ({notesIndex < durSize},
+	{~bassNotes = ~bassNotes.add([1, 4, 5].choose);
+		notesIndex = notesIndex + 1;
+});
+
+~bassNotes.postln;
+~bassDurations.postln;
 
 /*Changing tempo of bass based on the bifurcations of the logistic map.
 Speeds up every time the number of attracting points doubles
@@ -638,38 +634,35 @@ Speeds up every time the number of attracting points doubles
 3.848-3.857: 12/devolve into chaos
 3.857-4: chaos
 */
-
-~playBass = {
-	Pbind(
-		\instrument, \bass,
-		\dur, Pseq(durations, 2),
-		\amp, 0.25).play;
-};
-
-~playBass.value;
 )
 
 (
 //Synthdef:
 SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15,
-        detune = 1.005, preamp = 4|
-    var    sig,
-        env = Env.adsr(0.01, 0.3, 0.4, 0.1);
-    freq = Lag.kr(freq, slideTime);
-    sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp
-        * EnvGen.kr(env, gate, doneAction: 2);
-    sig = LPF.ar(sig, ffreq);
-    Out.ar(0, sig ! 2)
+	detune = 1.005, preamp = 4|
+	var    sig,
+	env = Env.adsr(0.01, 0.3, 0.4, 0.1);
+	freq = Lag.kr(freq, slideTime);
+	sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp
+	* EnvGen.kr(env, gate, doneAction: 2);
+	sig = LPF.ar(sig, ffreq);
+	Out.ar(0, sig ! 2)
 }).add;
 
-~playBass = {
+// ~playBass = {
 	Pbind(
 		\instrument, \bass,
-		\dur, ~bassDurations,
-		\amp, 0.25).play;
-};
+		\degree, Pseq(~bassNotes, 1),
+		\dur, Pseq(~bassDurations, 1),
+		\sustain, Pseq(~bassDurations, 1),
+		\octave, 4,
+		\ctranspose, 5,
+		\scale, [0, 2, 4, 5, 7, 9, 11],
+		\amp, 0.25
+	).play;
+// };
 
-~playBass.value;
+// ~playBass.value;
 
 )
 
@@ -788,13 +781,13 @@ SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLev
 }).store;
 
  p = Pbind(
-  \instrument, \drums,
-  \dur, 0.12,
-
+	\instrument, \drums,
+	\dur, 0.12,
 	\bassLevel, Pseq ([Pseq(~drumNotes)], inf),
 	\snareLevel, Pseq ([Pseq(~drumNotes), Pseq(~drumNotes)], inf),
-  \hatLevel, Pseq ([Pseq(~drumNotes)], inf),
-  \tomLevel, Pseq ([Pseq(~drumNotes)], inf)
+	\hatLevel, Pseq ([Pseq(~drumNotes)], inf),
+	\tomLevel, Pseq ([Pseq(~drumNotes)], inf)
 ).play;
 
 )
+
