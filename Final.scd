@@ -87,7 +87,11 @@ var hPitch = [ 0, 3, 6, 8, 12, 15 ]; // placeholder pitch array for the harmony 
 var hCount = 0; // placeholder count variable for testing
 var bPitch = [ 1, 4, 1, 5, 4, 5, 1 ];
 var bCount = 0;
+<<<<<<< Updated upstream
 var pPitch = [ 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0 ];
+=======
+var pPitch = ~drumNotes;
+>>>>>>> Stashed changes
 var pCount = 0;
 var mPitch = [ ];
 var mCount = 0;
@@ -200,6 +204,14 @@ v = UserView(w, Rect(0, 0, width, height));
 v.background = Color.grey;
 v.animate = true;
 v.frameRate = 2; // determines how many times a second the grid is rewritten; affects cell movements
+
+v.keyDownAction = { |view, char, mod, uni, key|
+	case
+	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ] }
+	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ] }
+	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ] }
+	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ] };
+};
 
 // This function is called frameRate times per second
 v.drawFunc = {
@@ -346,10 +358,10 @@ v.drawFunc = {
 		// Determine the new coordinate for the percussion cell based on rest vs. beat
 		case
 		{ pCount == 0 }  { }
-		{ pPitch[pCount] == 0 && pPitch[pCount - 1] == 1 }  { x3 = coords[ (coords.indexOf(x3) + 1) % 9 ] }
-		{ pPitch[pCount] == 1 && pPitch[pCount - 1] == 0 }  { x3 = coords[ (coords.indexOf(x3) - 1) % 9 ] };
+		{ pPitch[pCount] == 0 && pPitch[pCount - 1] == 1 }  { x3 = coords[ (coords.indexOf(x3) - 1) % 9 ] }
+		{ pPitch[pCount] == 1 && pPitch[pCount - 1] == 0 }  { x3 = coords[ (coords.indexOf(x3) + 1) % 9 ] };
 
-		pCount = (pCount + 1) % bPitch.size;
+		pCount = (pCount + 1) % pPitch.size;
 
 
 		// TODO:
@@ -626,7 +638,10 @@ var currRule = [];
 var iterateDrumNotes = 0;
 var generations = rrand(1, 10);
 var currGen = 0;
+<<<<<<< Updated upstream
 var currRule;
+=======
+>>>>>>> Stashed changes
 
 ~drumNotes = [];
 ~rules = [];
@@ -710,4 +725,24 @@ bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
  Out.ar(out, mixer);
 
  }).store;
+<<<<<<< Updated upstream
+=======
+
+ a = Pseq ([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]);
+ b = Pseq ([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0]);
+ c = Pseq ([0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0]);
+ d = Pseq ([0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1]);
+ e = Pseq ([0, 0,  1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1]);
+
+ p = Pbind(
+  \instrument, \drums,
+  \dur, 0.12,
+	\bassLevel, Pseq ([Pseq(~drumNotes)], inf),
+	\snareLevel, Pseq ([Pseq(~drumNotes), Pseq(~drumNotes)], inf),
+  \hatLevel, Pseq ([Pseq(~drumNotes)], inf),
+  \tomLevel, Pseq ([Pseq(~drumNotes)], inf)
+
+  ).play;
+
+>>>>>>> Stashed changes
 )
