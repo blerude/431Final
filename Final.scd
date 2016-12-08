@@ -450,6 +450,108 @@ x.free;
 // or close all HID device altogether
 HID.closeAll
 )
+
+(
+/****************************************************** MELODY ************************************************************/
+/*
+L-System to determine note played when joy stick is moved one of four directions
+U, D, L R : Up, down, left, right commands inputted from HID
+A, B, C, D : set of L-System rules for each direction
+*/
+
+//example test input
+var input = "D";
+
+var l_sys_rule = [];
+var note=[];
+
+//rules for L-System for each direction
+var nextA = { arg last_note;
+	var probabilities = Dictionary.newFrom([
+		60, [62],
+		62, [60],
+		64, [65],
+		65, [67],
+		67, [69],
+		69, [71],
+		71, [72],
+		72, [72]
+	]);
+	probabilities.at(last_note).choose;
+};
+
+var nextB = { arg last_note;
+	var probabilities = Dictionary.newFrom([
+		60, [60],
+		62, [60],
+		64, [62],
+		65, [64],
+		67, [65],
+		69, [67],
+		71, [69],
+		72, [71]
+	]);
+	probabilities.at(last_note).choose;
+};
+
+var nextC = { arg last_note;
+	var probabilities = Dictionary.newFrom([
+		60, [64, 67],
+		62, [64, 60],
+		64, [60, 67],
+		65, [67, 64],
+		67, [60, 64, 72],
+		69, [71, 67],
+		71, [72],
+		72, [72, 60, 67]
+	]);
+	probabilities.at(last_note).choose;
+};
+
+var nextD = { arg last_note;
+	var probabilities = Dictionary.newFrom([
+		60, [62, 72],
+		62, [64],
+		64, [60, 65],
+		65, [67, 60],
+		67, [60, 64, 72],
+		69, [67],
+		71, [72, 60],
+		72, [72, 60, 67]
+	]);
+	probabilities.at(last_note).choose;
+};
+
+l_sys_rule = l_sys_rule ++ input;
+
+~lastplayed = 60;
+
+if(l_sys_rule[0].asSymbol == 'U', {
+	note = note ++ nextA.(~lastplayed);
+	~lastplayed = note[0];
+});
+
+if(l_sys_rule[0].asSymbol == 'D', {
+	note = note ++ nextB.(~lastplayed);
+	~lastplayed = note[0];
+});
+
+if(l_sys_rule[0].asSymbol == 'L', {
+	note = note ++ nextC.(~lastplayed);
+	~lastplayed = note[0];
+});
+
+if(l_sys_rule[0].asSymbol == 'R', {
+	note = note ++ nextD.(~lastplayed);
+	~lastplayed = note[0];
+});
+
+note.postln;
+)
+
+
+
+
 (
 //GENERATING BASS
 //Dev
