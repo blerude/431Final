@@ -675,7 +675,8 @@ while ({currGen < generations},
 		});
 		currGen = currGen + 1;
 });
-~drumNotes.value;
+~drumNotes.postln;
+
 )
 
 (//Drum Synthdef
@@ -708,4 +709,20 @@ bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
  Out.ar(out, mixer);
 
  }).store;
+
+ a = Pseq ([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]);
+ b = Pseq ([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0]);
+ c = Pseq ([0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0]);
+ d = Pseq ([0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1]);
+ e = Pseq ([0, 0,  1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1]);
+
+ p = Pbind(
+  \instrument, \drums,
+  \dur, 0.12,
+	\bassLevel, Pseq ([Pseq(~drumNotes)], inf),
+	\snareLevel, Pseq ([Pseq(~drumNotes), Pseq(~drumNotes)], inf),
+  \hatLevel, Pseq ([Pseq(~drumNotes)], inf),
+  \tomLevel, Pseq ([Pseq(~drumNotes)], inf)
+
+  ).play;
 )
