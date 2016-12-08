@@ -92,6 +92,46 @@ SynthDef(\mario, { |out, amp=0.3, freq=60, sustainTime = 0.1|
 	snd = snd * EnvGen.ar(Env.linen(0.001, sustainTime, 0.03), doneAction:2);
 	OffsetOut.ar(out, snd*amp);
 }).store;
+
+//Drum Synthdef
+SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLevel = 0, pan1 = 0, pan2 = 0, pan3 = 0, pan4 = 0|
+
+	var env1, env2, env3, env4, bass, snare, hat, tom, bassOut, snareOut, hatOut, tomOut, mixer;
+	env1 = EnvGen.kr(Env.perc(0.001, 0.2, 1, -4), 1, doneAction:2);
+	env2 = EnvGen.kr(Env.perc(0.001, 0.5, 1, -1), 1, doneAction:2);
+	env3 = EnvGen.kr(Env.perc(0.002, 0.3, 1, -2), 1, doneAction:2);
+	env4 = EnvGen.kr(Env.perc(0.001, 0.1, 1, -5), 1, doneAction:2);
+
+	bass = SinOsc.ar(80) + Crackle.ar(1, 0.5);
+	bassOut = Pan2.ar(bass*env1, pan1, bassLevel);
+
+	snare = SinOsc.ar(120) - WhiteNoise.ar(0.5, 0.5);
+	snareOut = Pan2.ar(snare*env4, pan2, snareLevel);
+
+	hat = Klank.ar(`[ [ 6563, 9875 ],
+		[ 0.6, 0.5 ],
+		[ 0.002, 0.003] ], PinkNoise.ar(1));
+	hatOut = Pan2.ar(hat*env3, pan2, hatLevel);
+
+	tom = SinOsc.ar(440);
+	tomOut = Pan2.ar(tom*env4, pan4, tomLevel);
+
+	mixer = Mix.new([bassOut, snareOut, hatOut, tomOut]);
+
+	Out.ar(out, mixer);
+}).store;
+
+//Bass synthdef
+SynthDef(\bass, { |freq = 440, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15,
+	detune = 1.005, preamp = 4|
+	var    sig,
+	env = Env.adsr(0.01, 0.3, 0.4, 0.1);
+	freq = Lag.kr(freq, slideTime);
+	sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp
+	* EnvGen.kr(env, gate, doneAction: 2);
+	sig = LPF.ar(sig, ffreq);
+	Out.ar(0, sig ! 2)
+}).store;
 )
 
 
@@ -318,7 +358,7 @@ w = Window("Grid", Rect(
 v = UserView(w, Rect(0, 0, width, height));
 v.background = Color.grey;
 v.animate = true;
-v.frameRate = 30; // determines how many times a second the grid is rewritten; affects cell movements
+v.frameRate = 4; // determines how many times a second the grid is rewritten; affects cell movements
 
 // make frameRate = ~harmonyDurations once those are written???
 // rate = rate + 1;
@@ -454,7 +494,7 @@ v.drawFunc = {
 		case
 		{ hCount == 0 }  { }
 		{ (hPitch[hCount - 1] < hPitch[hCount]) && ((hPitch[hCount] - hPitch[hCount - 1]) < 3) }
-			{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ] } // X moves to the right
+			{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]} // X moves to the right
 		{ hPitch[hCount - 1] < hPitch[hCount] }
 		    { y1 = coords[ (coords.indexOf(y1) + 1) % 9 ] } // Y moves up
 		{ hPitch[hCount - 1] > hPitch[hCount] && ((hPitch[hCount - 1] - hPitch[hCount]) < 3) }
@@ -464,27 +504,36 @@ v.drawFunc = {
 
 		hCount = (hCount + 1) % hPitch.size;
 
-
+		e = Synth(\mario);
 		// Determine the new coordinate for the bass cell based on pitch relationships
 		case
 		{ bCount == 0 }  { }
 		{ (bPitch[bCount - 1] < bPitch[bCount]) && ((bPitch[bCount] - bPitch[bCount - 1]) < 3) }
-		    { x2 = coords[ (coords.indexOf(x2) + 1) % 9 ] }
+		    { x2 = coords[ (coords.indexOf(x2) + 1) % 9 ];
+			e.set(\freq, 400 + bPitch[bCount], \sustainTime, 0.1);
+		}
 		{ bPitch[bCount - 1] < bPitch[bCount] }
-		    { y2 = coords[ (coords.indexOf(y2) + 1) % 9 ] }
+		    { y2 = coords[ (coords.indexOf(y2) + 1) % 9 ];
+			e.set(\freq, 400 + bPitch[bCount], \sustainTime, 0.1);
+		}
 		{ bPitch[bCount - 1] > bPitch[bCount] && ((bPitch[bCount - 1] - bPitch[bCount]) < 3) }
-		    { x2 = coords[ (coords.indexOf(x2) - 1) % 9 ] }
+		    { x2 = coords[ (coords.indexOf(x2) - 1) % 9 ];
+			e.set(\freq, 400 + bPitch[bCount], \sustainTime, 0.1);
+		}
 		{ bPitch[bCount - 1] > bPitch[bCount] }
-		    { y2 = coords[ (coords.indexOf(y2) - 1) % 9 ] };
+		    { y2 = coords[ (coords.indexOf(y2) - 1) % 9 ];
+			e.set(\freq, 400 + bPitch[bCount], \sustainTime, 0.1);
+		};
 
 		bCount = (bCount + 1) % bPitch.size;
 
-
+		m = Synth(\drums);
 		// Determine the new coordinate for the percussion cell based on rest vs. beat
+		~drumCounter = 0;
 		case
 		{ pCount == 0 }  { }
-		{ pPitch[pCount] == 0 && pPitch[pCount - 1] == 1 }  { x3 = coords[ (coords.indexOf(x3) - 1) % 9 ] }
-		{ pPitch[pCount] == 1 && pPitch[pCount - 1] == 0 }  { x3 = coords[ (coords.indexOf(x3) + 1) % 9 ] };
+		{ pPitch[pCount] == 0 && pPitch[pCount - 1] == 1 }  { x3 = coords[ (coords.indexOf(x3) - 1) % 9 ]; m.set(\bassLevel, 0, \snareLevel, rrand(0, 1).value, \tomLevel, rrand(0, 1).value, \hatLevel, rrand(0, 1).value);}
+		{ pPitch[pCount] == 1 && pPitch[pCount - 1] == 0 }  { x3 = coords[ (coords.indexOf(x3) + 1) % 9 ]; m.set(\bassLevel, 1, \snareLevel, rrand(0, 1).value, \tomLevel, rrand(0, 1).value, \hatLevel, rrand(0, 1).value); };
 
 		pCount = (pCount + 1) % pPitch.size;
 
@@ -682,7 +731,7 @@ while ({currGen < generations},
 )
 
 (//Drum Synthdef
-SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLevel = 0, pan1 = 0, pan2 = 0, pan3 = 0, pan4 = 0|
+~drumSynth = SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLevel = 0, pan1 = 0, pan2 = 0, pan3 = 0, pan4 = 0|
 
 	var env1, env2, env3, env4, bass, snare, hat, tom, bassOut, snareOut, hatOut, tomOut, mixer;
 	env1 = EnvGen.kr(Env.perc(0.001, 0.2, 1, -4), 1, doneAction:2);
@@ -709,13 +758,27 @@ SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLev
 	Out.ar(out, mixer);
 }).store;
 
- p = Pbind(
+/*~drumCounter = 0;
+playDrums = {
+	var newP = ~drumNotes[~drumCounter];
+	case
+	{ newP == 0 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123);
+		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
+	{ newP == 1 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124);
+		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
+	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125);
+		s.set(\freq, newP, \sustainTime, 0.1) }
+	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126);
+		s.set(\freq, newP, \sustainTime, 0.3) };
+};*/
+
+ /*p = Pbind(
 	\instrument, \drums,
-	\dur, 0.12,
+	\dur, 0.125,
 	\bassLevel, Pseq ([Pseq(~drumNotes)], inf),
 	\snareLevel, Pseq ([Pseq(~drumNotes), Pseq(~drumNotes)], inf),
 	\hatLevel, Pseq ([Pseq(~drumNotes)], inf),
 	\tomLevel, Pseq ([Pseq(~drumNotes)], inf)
-).play;
+).play;*/
 
 )
