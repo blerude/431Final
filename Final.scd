@@ -246,6 +246,7 @@ generations.postln;
 //generate rules
 while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
 	{iterateRule = 0;
+		currRule = [];
 		while ({iterateRule < 2},
 			{currRule = currRule.add(rrand(0, 1));
 				iterateRule = iterateRule + 1;
@@ -254,6 +255,7 @@ while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
 		iterateRuleArray = iterateRuleArray + 1;
 	}
 );
+~rules.postln;
 
 //generate initial state for drumNotes array
 
@@ -264,16 +266,17 @@ while ({iterateDrumNotes < 240}, //4 minutes of music
 
 ~drumNotes.postln;
 
-/*//do rules for random number of generations
+//do rules for random number of generations
 while ({currGen < generations},
 	{//update snareLevel, hatLevel, and tomLevel?
 		if (currGen == (generations - 3),
-			{~snareLevel = ~drumNotes;});
+			{~snareLevel = Array.newFrom(~drumNotes);});
 		if (currGen == (generations - 2),
-			{~hatLevel = ~drumNotes;});
+			{~hatLevel = Array.newFrom(~drumNotes);});
 		if (currGen == (generations - 1),
-			{~tomLevel = ~drumNotes;});
+			{~tomLevel = Array.newFrom(~drumNotes);});
 		//change array
+		index = 0;
 		while ({index < 239}, //don't do it for the last one because no pair
 			{if (~drumNotes[index] == 0,
 				{
@@ -302,12 +305,13 @@ while ({currGen < generations},
 		" ".post;
 		~drumNotes.postln;
 		currGen = currGen + 1;
-});*/
+});
 
 ~bassLevel = ~drumNotes;
-~snareLevel = reverse(~drumNotes);
-~hatLevel = ~drumNotes;
-~tomLevel = ~drumNotes;
+~bassLevel.postln;
+~snareLevel.postln;
+~hatLevel.postln;
+~tomLevel.postln;
 )
 
 
