@@ -384,6 +384,7 @@ var drawCell = { | x, y, color, ind |
 	);
 	Pen.color = color;
 	Pen.fillRect(Rect(cell[\x] - cell[\size], cell[\y] - cell[\size], cell[\size] * 2, cell[\size] * 2));
+~endmusic == false;
 
 	// Add tab to respective cells to indicate which track it represents (harmony, melody, etc.)
 	Pen.strokeColor = Color.black;
@@ -423,10 +424,27 @@ var tracePath = { | xArray, yArray, width, height |
 };
 
 /********************************************** MELODY **************************************************/
+var gameOver = {
+	w = Window.new("Game Over", Rect(200,200,255,100));
+	b = Button.new(w,Rect(10,0,80,30)).states_([["Close"]]);
+	StaticText.new(c,Rect(0,0,80,30)).string_("Game Over");
+	b.action = { Window.closeAll; ~endmusic = true};
+	w.front;
+};
+
+var checkCollisions = {arg x,  y;
+	//check if melody coords.
+	if((x == x1) && (y == y1), {"1onsame".postln; gameOver.value()},{"NOT".postln});
+
+	if((x == x2) && (y == y2), {"2onsame".postln; gameOver.value()},{"NOT".postln});
+
+	if((x == x3) && (y == y3), {"3onsame".postln; gameOver.value()},{"NOT".postln});
+
+};
 
 var melodySong =  {arg input;
 	/*
-	L-System to determine note played when joy stick is moved one of four directions
+	L-System to determine note played when key stroke is moved one of four directions
 	U, D, L R : Up, down, left, right commands inputted from HID
 	A, B, C, D : set of L-System rules for each direction
 	*/
@@ -563,19 +581,19 @@ rate = rate + 1;
 v.keyDownAction = { |view, char, mod, uni, key|
 	var newP = ~noteArray[~counter];
 	case
-	{ key == 123 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); moveHarmony.value(coords);
+	{ key == 123 } {x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); moveHarmony.value(coords);
 		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
 	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124); moveHarmony.value(coords);
 		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
 	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125); moveHarmony.value(coords);
-		s.set(\freq, newP, \sustainTime, 0.1) }
+		s.set(\freq, newP, \sustainTime, 0.1)}
 	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126); moveHarmony.value(coords);
 		s.set(\freq, newP, \sustainTime, 0.3) };
 };
 
 // This function is called frameRate times per second
 v.drawFunc = {
-
+	checkCollisions.(x4, y4);
 	// Do drawing
 	Pen.use {
 		var loc, track, currCell;
@@ -731,6 +749,8 @@ v.drawFunc = {
 
 
 		m = Synth(\drums);
+		//if (~endmusic == true, {m.free; e.free; s.free; h.free});
+
 		// Determine the new coordinate for the percussion cell based on rest vs. beat
 		~drumCounter = 0;
 		case
@@ -743,6 +763,8 @@ v.drawFunc = {
 		pCount = (pCount + 1) % pPitch.size;
 	};
 };
+
+
 )
 
 (
