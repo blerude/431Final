@@ -2,13 +2,11 @@
 
 
 // TODO:
-// 1. fix sound harmony, bass         [this is lerudeswim's job]
 // 2. sync melody-harmony rules    [this is tymysports' job]
 // 3. collisions!                                [this is bballerika's job]
 // 4. Devin fix bass synth issues. Sound lasting too long + how to speed up?
 
 // Make it look good
-
 
 
 
@@ -142,16 +140,28 @@ SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLev
 }).store;
 
 //Bass synthdef
-SynthDef(\bass, { |freq = 60, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15,
-	detune = 1.005, preamp = 4|
-	var    sig,
+/*SynthDef(\bass, { |out, freq = 60, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15, detune = 1.005, preamp = 4|
+	var sig,
 	env = Env.adsr(0.01, 0.3, 0.4, 0.1);
 	freq = Lag.kr(freq, slideTime).midicps;
-	sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp
-	* EnvGen.kr(env, gate, doneAction: 2);
+	sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp * EnvGen.kr(env, gate, doneAction: 2);
 	sig = LPF.ar(sig, ffreq);
-	Out.ar(0, sig ! 2)
-}).store;
+	Out.ar(out, sig ! 2)
+}).add;*/
+
+//New bass synthdef
+SynthDef(\ixibass, {arg out=0, amp=0.3, t_trig=1, freq=60, rq=0.004, sustainTime=0.5;
+	var env, signal;
+	var rho, theta, b1, b2;
+	b1 = 1.98 * 0.989999999 * cos(0.09);
+	b2 = 0.998057.neg;
+	signal = SOS.ar(K2A.ar(t_trig), 0.123, 0.0, 0.0, b1, b2);
+	signal = RHPF.ar(signal, freq.midicps, rq) + RHPF.ar(signal, freq.midicps, rq);
+	// signal = signal * EnvGen.ar(Env.adsr(0.01, 0.3, sustainTime, 1));
+	signal = signal * EnvGen.ar(Env.dur(sustainTime));
+	DetectSilence.ar(signal, 0.01, doneAction:2);
+	Out.ar(out, signal*(amp*0.45)!2);
+}).add;
 )
 
 
@@ -190,12 +200,12 @@ durSize = ~bassDurations.size;
 // durSize.postln;
 
 while ({notesIndex < durSize},
-	{~bassNotes = ~bassNotes.add([1, 4, 5].choose);
+	{~bassNotes = ~bassNotes.add([60, 65, 67].choose);
 		notesIndex = notesIndex + 1;
 });
 
 ~bassNotes.postln;
-~bassDurations.postln;
+~bassDurations.postcs;
 
 /*Changing tempo of bass based on the bifurcations of the logistic map.
 Speeds up every time the number of attracting points doubles
@@ -423,7 +433,6 @@ var tracePath = { | xArray, yArray, width, height |
 	} );
 };
 
-/********************************************** MELODY **************************************************/
 var gameOver = {
 	w = Window.new("Game Over", Rect(200,200,255,100));
 	b = Button.new(w,Rect(10,0,80,30)).states_([["Close"]]);
@@ -434,14 +443,15 @@ var gameOver = {
 
 var checkCollisions = {arg x,  y;
 	//check if melody coords.
-	if((x == x1) && (y == y1), {"1onsame".postln; gameOver.value()},{"NOT".postln});
+	if((x == x1) && (y == y1), {"1onsame".postln; gameOver.value()},{ });
 
-	if((x == x2) && (y == y2), {"2onsame".postln; gameOver.value()},{"NOT".postln});
+	if((x == x2) && (y == y2), {"2onsame".postln; gameOver.value()},{ });
 
-	if((x == x3) && (y == y3), {"3onsame".postln; gameOver.value()},{"NOT".postln});
+	if((x == x3) && (y == y3), {"3onsame".postln; gameOver.value()},{ });
 
 };
 
+/********************************************** MELODY **************************************************/
 var melodySong =  {arg input;
 	/*
 	L-System to determine note played when key stroke is moved one of four directions
@@ -554,13 +564,13 @@ var moveHarmony = { |coords|
 	case
 	{ ~counter == 0 }  { }
 	{ (~harmony_array[~counter - 1] < ~harmony_array[~counter]) && ((~harmony_array[~counter] - ~harmony_array[~counter - 1]) < 3) }
-	{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]; h.set(\freq, newP, \sustain, rrand(0.1, 0.5)) } // X moves to the right
+	{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]; h.set(\freq, newP, \sustainTime, 0.5) } // X moves to the right
 	{ ~harmony_array[~counter - 1] < ~harmony_array[~counter ] }
-	{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ]; h.set(\freq, newP, \sustain, rrand(0.1, 0.5)) } // Y moves up
+	{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ]; h.set(\freq, newP, \sustainTime, 0.5) } // Y moves up
 	{ ~harmony_array[~counter - 1] > ~harmony_array[~counter] && ((~harmony_array[~counter - 1] - ~harmony_array[~counter]) < 3) }
-	{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ]; h.set(\freq, newP, \sustain, rrand(0.1, 0.5)) } // X moves to the left
+	{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ]; h.set(\freq, newP, \sustainTime, 0.5) } // X moves to the left
 	{ ~harmony_array[~counter - 1] > ~harmony_array[~counter] }
-	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ]; h.set(\freq, newP, \sustain, rrand(0.1, 0.5)) }; // Y moves down
+	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ]; h.set(\freq, newP, \sustainTime, 0.5) }; // Y moves down
 };
 
 var rate = 0;
@@ -716,40 +726,28 @@ v.drawFunc = {
 
 		hCount = (hCount + 1) % hPitch.size;*/
 
-		var moveHarmony = { | hCount, ~harmony_array |
-		case
-		{ hCount == 0 }  { }
-		{ (~harmony_array[hCount - 1] < ~harmony_array[hCount]) && ((~harmony_array[hCount] - ~harmony_array[hCount - 1]) < 3) }
-		{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ] } // X moves to the right
-		{ ~harmony_array[hCount - 1] < ~harmony_array[hCount] }
-		{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ] } // Y moves up
-		{ ~harmony_array[hCount - 1] > ~harmony_array[hCount] && ((~harmony_array[hCount - 1] - ~harmony_array[hCount]) < 3) }
-		{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] } // X moves to the left
-		{ ~harmony_array[hCount - 1] > ~harmony_array[hCount] }
-		{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ] }; // Y moves down
-		};*/
 		/*		hCount = (hCount + 1) % ~harmony_array.size;
 		("h: " + hCount).postln;
 		~counter.postln;*/
 
-		e = Synth(\bass);
+		e = Synth(\ixibass);
 		// Determine the new coordinate for the bass cell based on pitch relationships
 		case
 		{ bCount == 0 }  { }
 		{ (bPitch[bCount - 1] < bPitch[bCount]) && ((bPitch[bCount] - bPitch[bCount - 1]) < 3) }
-		{ x2 = coords[ (coords.indexOf(x2) + 1) % 9 ]; e.set(\freq, bPitch[bCount]); }
+		{ x2 = coords[ (coords.indexOf(x2) + 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount]; ~bassDurations[bCount].postln ); }
 		{ bPitch[bCount - 1] < bPitch[bCount] }
-		{ y2 = coords[ (coords.indexOf(y2) + 1) % 9 ]; e.set(\freq, bPitch[bCount]); }
+		{ y2 = coords[ (coords.indexOf(y2) + 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount]; ~bassDurations[bCount].postln ); }
 		{ bPitch[bCount - 1] > bPitch[bCount] && ((bPitch[bCount - 1] - bPitch[bCount]) < 3) }
-		{ x2 = coords[ (coords.indexOf(x2) - 1) % 9 ]; e.set(\freq, bPitch[bCount]); }
+		{ x2 = coords[ (coords.indexOf(x2) - 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount]; ~bassDurations[bCount].postln ); }
 		{ bPitch[bCount - 1] > bPitch[bCount] }
-		{ y2 = coords[ (coords.indexOf(y2) - 1) % 9 ]; e.set(\freq, bPitch[bCount]); };
+		{ y2 = coords[ (coords.indexOf(y2) - 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount]; ~bassDurations[bCount].postln); };
 
 		bCount = (bCount + 1) % bPitch.size;
 
 
 		m = Synth(\drums);
-		//if (~endmusic == true, {m.free; e.free; s.free; h.free});
+		// if (~endmusic == true, {m.free; e.free; s.free; h.free});
 
 		// Determine the new coordinate for the percussion cell based on rest vs. beat
 		~drumCounter = 0;
@@ -760,7 +758,6 @@ v.drawFunc = {
 
 		m.set(\bassLevel, pPitch[pCount], \snareLevel, ~snareLevel[pCount], \tomLevel, ~tomLevel[pCount], \hatLevel, ~hatLevel[pCount]);
 
-
 		pCount = (pCount + 1) % pPitch.size;
 	};
 };
@@ -769,7 +766,7 @@ v.drawFunc = {
 )
 
 (
-Pbind(.
+Pbind(
 	\instrument, \bass,
 	\degree, Pseq(~bassNotes, 1),
 	\dur, Pseq(~bassDurations, 1),
@@ -779,10 +776,12 @@ Pbind(.
 	\scale, [0, 2, 4, 5, 7, 9, 11],
 	\amp, 0.25
 ).play;
+
+
 )
 
 
-(//IDK
+( //IDK
 /*~drumCounter = 0;
 playDrums = {
 	var newP = ~drumNotes[~drumCounter];
@@ -805,5 +804,4 @@ playDrums = {
 	\hatLevel, Pseq ([Pseq(~drumNotes)], inf),
 	\tomLevel, Pseq ([Pseq(~drumNotes)], inf)
 ).play;*/
-
 )
