@@ -5,7 +5,7 @@
 // 1. fix sound harmony, bass         [this is lerudeswim's job]
 // 2. sync melody-harmony rules    [this is tymysports' job]
 // 3. collisions!                                [this is bballerika's job]
-// 6. Devin fix cellular automata      [this is development's job]
+// 4. Devin fix bass synth issues. Sound lasting too long + how to speed up?
 
 // Make it look good
 
@@ -292,7 +292,7 @@ while ({currGen < generations},
 					//10
 					if (~drumNotes[index + 1] == 0,
 						{currRule = ~rules[2];});
-					//11
+					//11s
 					if (~drumNotes[index + 1] == 1,
 						{currRule = ~rules[3];});
 			});
@@ -716,7 +716,7 @@ v.drawFunc = {
 
 		hCount = (hCount + 1) % hPitch.size;*/
 
-		/*var moveHarmony = { | hCount, ~harmony_array |
+		var moveHarmony = { | hCount, ~harmony_array |
 		case
 		{ hCount == 0 }  { }
 		{ (~harmony_array[hCount - 1] < ~harmony_array[hCount]) && ((~harmony_array[hCount] - ~harmony_array[hCount - 1]) < 3) }
@@ -755,10 +755,11 @@ v.drawFunc = {
 		~drumCounter = 0;
 		case
 		{ pCount == 0 }  { }
-		{ pPitch[pCount] == 0 && pPitch[pCount - 1] == 1 }  { x3 = coords[ (coords.indexOf(x3) - 1) % 9 ];
-			m.set(\bassLevel, 0, \snareLevel, rrand(0, 1).value, \tomLevel, rrand(0, 1).value, \hatLevel, rrand(0, 1).value);}
-		{ pPitch[pCount] == 1 && pPitch[pCount - 1] == 0 }  { x3 = coords[ (coords.indexOf(x3) + 1) % 9 ];
-			m.set(\bassLevel, 1, \snareLevel, rrand(0, 1).value, \tomLevel, rrand(0, 1).value, \hatLevel, rrand(0, 1).value); };
+		{ pPitch[pCount] == 0 && pPitch[pCount - 1] == 1 }  { x3 = coords[ (coords.indexOf(x3) - 1) % 9 ];}
+		{ pPitch[pCount] == 1 && pPitch[pCount - 1] == 0 }  { x3 = coords[ (coords.indexOf(x3) + 1) % 9 ];};
+
+		m.set(\bassLevel, pPitch[pCount], \snareLevel, ~snareLevel[pCount], \tomLevel, ~tomLevel[pCount], \hatLevel, ~hatLevel[pCount]);
+
 
 		pCount = (pCount + 1) % pPitch.size;
 	};
@@ -768,7 +769,7 @@ v.drawFunc = {
 )
 
 (
-Pbind(
+Pbind(.
 	\instrument, \bass,
 	\degree, Pseq(~bassNotes, 1),
 	\dur, Pseq(~bassDurations, 1),
