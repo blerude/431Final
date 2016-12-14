@@ -4,7 +4,8 @@
 // TODO:
 // 2. sync melody-harmony rules    [this is tymysports' job]
 // 3. collisions!                                [this is bballerika's job]
-// 4. Devin fix bass synth issues. Sound lasting too long + how to speed up?
+// 4. Devin fix bass synth issues. Sound lasting too long + how to speed up? synth doesnt seem like its working
+//add more game-like functionality? what happens with the black things
 
 // Make it look good
 
@@ -139,16 +140,6 @@ SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLev
 	Out.ar(out, mixer);
 }).store;
 
-//Bass synthdef
-/*SynthDef(\bass, { |out, freq = 60, gate = 1, amp = 0.5, slideTime = 0.17, ffreq = 1100, width = 0.15, detune = 1.005, preamp = 4|
-	var sig,
-	env = Env.adsr(0.01, 0.3, 0.4, 0.1);
-	freq = Lag.kr(freq, slideTime).midicps;
-	sig = Mix(VarSaw.ar([freq, freq * detune], 0, width, preamp)).distort * amp * EnvGen.kr(env, gate, doneAction: 2);
-	sig = LPF.ar(sig, ffreq);
-	Out.ar(out, sig ! 2)
-}).add;*/
-
 //New bass synthdef
 SynthDef(\ixibass, {arg out=0, amp=0.3, t_trig=1, freq=60, rq=0.004, sustainTime=0.5;
 	var env, signal;
@@ -158,16 +149,11 @@ SynthDef(\ixibass, {arg out=0, amp=0.3, t_trig=1, freq=60, rq=0.004, sustainTime
 	signal = SOS.ar(K2A.ar(t_trig), 0.123, 0.0, 0.0, b1, b2);
 	signal = RHPF.ar(signal, freq.midicps, rq) + RHPF.ar(signal, freq.midicps, rq);
 	// signal = signal * EnvGen.ar(Env.adsr(0.01, 0.3, sustainTime, 1));
-	signal = signal * EnvGen.ar(Env.dur(sustainTime));
+	signal = signal * EnvGen.ar(Env.sine(sustainTime));
 	DetectSilence.ar(signal, 0.01, doneAction:2);
 	Out.ar(out, signal*(amp*0.45)!2);
-}).add;
+}).store;
 )
-
-
-
-
-
 
 
 /////////////////////////////BASS//////////////////////////////
@@ -206,32 +192,7 @@ while ({notesIndex < durSize},
 
 ~bassNotes.postln;
 ~bassDurations.postcs;
-
-/*Changing tempo of bass based on the bifurcations of the logistic map.
-Speeds up every time the number of attracting points doubles
-
-0-1: none
-1-3: 1
-3-3.44 (1 + sqrt(6)): 2
-3.44-3.544: 4
-3.544-3.596: 8
-3.596-3.626: chaos
-3.626-3.63: 6
-3.63-3.633:12
-3.633-3.738: chaos
-3.738-3.741: 5
-3.741-3.744:10
-3.744-3.828: chaos
-3.828-3.841: 3
-3.841-3.848: 6
-3.848-3.857: 12/devolve into chaos
-3.857-4: chaos
-*/
 )
-
-
-
-
 
 
 ////////////////////PERCUSSION////////////////////////
