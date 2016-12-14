@@ -727,6 +727,9 @@ v.drawFunc = {
 )
 
 (
+//Chaotic Bass Thing.
+//Easier to hear separate from the GUI/game, which doesn't end up playing all of the notes because of the framerate
+
 Pbind(
 	\instrument, \bass,
 	\degree, Pseq(~bassNotes, 1),
@@ -737,32 +740,4 @@ Pbind(
 	\scale, [0, 2, 4, 5, 7, 9, 11],
 	\amp, 0.25
 ).play;
-
-
-)
-
-
-( //IDK
-/*~drumCounter = 0;
-playDrums = {
-	var newP = ~drumNotes[~drumCounter];
-	case
-	{ newP == 0 } { x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123);
-		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
-	{ newP == 1 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124);
-		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
-	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125);
-		s.set(\freq, newP, \sustainTime, 0.1) }
-	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126);
-		s.set(\freq, newP, \sustainTime, 0.3) };
-};*/
-
- /*p = Pbind(
-	\instrument, \drums,
-	\dur, 0.125,
-	\bassLevel, Pseq ([Pseq(~drumNotes)], inf),
-	\snareLevel, Pseq ([Pseq(~drumNotes), Pseq(~drumNotes)], inf),
-	\hatLevel, Pseq ([Pseq(~drumNotes)], inf),
-	\tomLevel, Pseq ([Pseq(~drumNotes)], inf)
-).play;*/
 )
