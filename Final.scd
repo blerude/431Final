@@ -102,7 +102,8 @@ b = Button.new(x,Rect(155,320,90,30))
 ~noteArray = [60];
 ~counter = 0;
 
-~harmony_array = [60, 60, 60, 60];
+~harmony_array = [0, 0];
+~harmonypitch_array = [60, 60];
 
 // Mario-inspired SynthDef for the melody
 SynthDef(\mario, { |out, amp=0.3, freq=60, sustainTime = 0.1|
@@ -291,7 +292,7 @@ while ({currGen < generations},
 //////////////////////////GUI///////////////////////
 (
 //GUI STUFF
-var hPitch = ~harmony_array; // placeholder pitch array for the harmony line
+var hPitch = ~harmonypitch_array; // placeholder pitch array for the harmony line
 var hCount = 0; // placeholder count variable for testing
 var bPitch = ~bassNotes;
 var bCount = 0;
@@ -424,8 +425,6 @@ var melodySong =  {arg input;
 	var l_sys_rule = [];
 	var note=[];
 
-	var harmony_note = [60, 64, ];
-
 	//rules for L-System for each direction
 	var nextA = { arg last_note;
 		var probabilities = Dictionary.newFrom([
@@ -488,6 +487,7 @@ var melodySong =  {arg input;
 	if(l_sys_rule[0] == 125, {
 		note = note ++ nextA.(~noteArray[~counter]);
 		~noteArray = ~noteArray ++ note[0];
+		~harmony_array = ~harmony_array ++ l_sys_rule[0];
 		~counter = ~counter + 1;
 		"moved down".postln;
 	});
@@ -495,6 +495,7 @@ var melodySong =  {arg input;
 	if(l_sys_rule[0] == 126, {
 		note = note ++ nextB.(~noteArray[~counter]);
 		~noteArray = ~noteArray ++ note[0];
+		~harmony_array = ~harmony_array ++ l_sys_rule[0];
 		~counter = ~counter + 1;
 		"moved up".postln;
 	});
@@ -502,6 +503,7 @@ var melodySong =  {arg input;
 	if(l_sys_rule[0] == 123, {
 		note = note ++ nextC.(~noteArray[~counter]);
 		~noteArray = ~noteArray ++ note[0];
+		~harmony_array = ~harmony_array ++ l_sys_rule[0];
 		~counter = ~counter + 1;
 		"moved left".postln;
 	});
@@ -509,6 +511,7 @@ var melodySong =  {arg input;
 	if(l_sys_rule[0] == 124, {
 		note = note ++ nextD.(~noteArray[~counter]);
 		~noteArray = ~noteArray ++ note[0];
+		~harmony_array = ~harmony_array ++ l_sys_rule[0];
 		~counter = ~counter + 1;
 		"moved right".postln;
 	});
@@ -516,25 +519,28 @@ var melodySong =  {arg input;
 	s = Synth(\mario);
 	h = Synth(\mario);
 
-	~harmony_array = ~harmony_array ++ ~noteArray[~counter - 4];
+	~harmonypitch_array = ~harmonypitch_array ++ ~noteArray[~counter-2];
+	~harmonypitch_array.postln;
+
 };
 
 
 var moveHarmony = { |coords|
-	var newP = ~harmony_array[~counter];
 	case
 	{ ~counter == 0 }  { }
-	{ (~harmony_array[~counter - 1] < ~harmony_array[~counter]) && ((~harmony_array[~counter] - ~harmony_array[~counter - 1]) < 3) }
-	{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]; h.set(\freq, newP, \sustainTime, 0.5) } // X moves to the right
-	{ ~harmony_array[~counter - 1] < ~harmony_array[~counter ] }
-	{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ]; h.set(\freq, newP, \sustainTime, 0.5) } // Y moves up
-	{ ~harmony_array[~counter - 1] > ~harmony_array[~counter] && ((~harmony_array[~counter - 1] - ~harmony_array[~counter]) < 3) }
-	{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ]; h.set(\freq, newP, \sustainTime, 0.5) } // X moves to the left
-	{ ~harmony_array[~counter - 1] > ~harmony_array[~counter] }
-	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ]; h.set(\freq, newP, \sustainTime, 0.5) }; // Y moves down
+	{ ~harmony_array[~counter] == 124 }
+	{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]; } // X moves to the right
+	{ ~harmony_array[~counter] == 125 }
+	{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ];  } // Y moves up
+	{ ~harmony_array[~counter] == 123 }
+	{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ]; } // X moves to the left
+	{ ~harmony_array[~counter] == 126}
+	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ];  }; // Y moves down
 };
 
 var rate = 0;
+
+h.set(\freq, ~harmonypitch_array[~counter], \sustainTime, 0.5);
 
 // Create Grid
 w = Window("Grid", Rect(
