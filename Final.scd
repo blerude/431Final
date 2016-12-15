@@ -3,10 +3,7 @@
 
 // TODO:
 // 2. sync melody-harmony rules    [this is tymysports' job]
-// 3. collisions!                                [this is bballerika's job]
-// 4. Devin fix bass synth issues. Sound lasting too long + how to speed up? synth doesnt seem like its working
-//add more game-like functionality? what happens with the black things
-
+//4. black box conflicts
 // Make it look good
 
 
@@ -343,8 +340,8 @@ var c1 = Color.rand; // each box is given a random color
 var c2 = Color.rand;
 var c3 = Color.rand;
 var c4 = Color.blue;
-var boxX = [ 4, 6, 6, 8, 4, 2, 3, 2 ]; // Barrier cell x indices
-var boxY = [ 2, 5, 6, 3, 8, 5, 4, 3 ]; // Barrier cell y indices
+var boxX = [ 24, 148, 190, 358, 22, 316, 358, 148 ]; // Barrier cell x indices
+var boxY = [ 64, 190, 232, 316, 64, 106, 148, 358 ]; // Barrier cell y indices
 
 // This function creates the cells using the coordinates and color assigned
 var drawCell = { | x, y, color, ind |
@@ -538,6 +535,47 @@ var moveHarmony = { |coords|
 	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ];  }; // Y moves down
 };
 
+var checkBlackBox = {arg x,  y, key;
+	//check if melody coords. are about to collide with black box
+	var move = true;
+	"in check".postln;
+	x.postln;
+	y.postln;
+	if((x == boxX[0]) && (y == boxY[0]), {"don't touch".postln; move = false;});
+
+	if((x == boxX[1]) && (y == boxY[1]), {"don't touch".postln; move = false;});
+
+	if((x == boxX[2]) && (y == boxY[2]), {"don't touch".postln; move = false;});
+
+	if((x == boxX[3]) && (y == boxY[3]), {"don't touch".postln; move = false;});
+
+	if((x == boxX[4]) && (y == boxY[4]), {"don't touch".postln; move = false;});
+
+	if((x == boxX[5]) && (y == boxY[5]), {"don't touch".postln; move = false;});
+
+	if((x == boxX[6]) && (y == boxY[6]), {"don't touch".postln; move = false;});
+
+	if((x == boxX[7]) && (y == boxY[7]), {"don't touch".postln; move = false;});
+
+	if (move == true, {moveMelody.value(key);});
+};
+
+var moveMelody = {arg key;
+	//check if melody coords. are about to collide with black box
+	var newP = ~noteArray[~counter];
+		"moveMelody".postln;
+	case
+	{ key == 123 } {x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); moveHarmony.value(coords);
+		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
+	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124); moveHarmony.value(coords);
+		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
+	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125); moveHarmony.value(coords);
+		s.set(\freq, newP, \sustainTime, 0.1)}
+	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126); moveHarmony.value(coords);
+		s.set(\freq, newP, \sustainTime, 0.3) };
+
+};
+
 var rate = 0;
 
 h.set(\freq, ~harmonypitch_array[~counter], \sustainTime, 0.5);
@@ -558,14 +596,10 @@ rate = rate + 1;
 v.keyDownAction = { |view, char, mod, uni, key|
 	var newP = ~noteArray[~counter];
 	case
-	{ key == 123 } {x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); moveHarmony.value(coords);
-		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
-	{ key == 124 } { x4 = coords[ (coords.indexOf(x4) + 1) % 9 ]; melodySong.(124); moveHarmony.value(coords);
-		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
-	{ key == 125 } { y4 = coords[ (coords.indexOf(y4) + 1) % 9 ]; melodySong.(125); moveHarmony.value(coords);
-		s.set(\freq, newP, \sustainTime, 0.1)}
-	{ key == 126 } { y4 = coords[ (coords.indexOf(y4) - 1) % 9 ]; melodySong.(126); moveHarmony.value(coords);
-		s.set(\freq, newP, \sustainTime, 0.3) };
+	{ key == 123 } {checkBlackBox.value(coords[(coords.indexOf(x4) - 1) % 9], y4, key) }
+	{ key == 124 } { checkBlackBox.value( coords[(coords.indexOf(x4) + 1) % 9] , y4, key) }
+	{ key == 125 } { checkBlackBox.value(x4,  coords[(coords.indexOf(y4) + 1) % 9] , key)}
+	{ key == 126 } { checkBlackBox.value(x4, coords[(coords.indexOf(y4) - 1) % 9] , key) };
 };
 
 // This function is called frameRate times per second
@@ -593,11 +627,11 @@ v.drawFunc = {
 			Pen.perform([\stroke]);
 		});
 
-		boxX.size.do( { |i| if( (mCount == 0 && coords[boxX[i]] == x4 && coords[boxY[i]] == y4),
+		boxX.size.do( { |i| if( (mCount == 0 && boxX[i] == x4 && boxY[i] == y4),
 			{ boxX.removeAt(i); boxY.removeAt(i); boxX.postln; boxY.postln } ) });
 
 		// Creates a series of black cells to increase grid occupancy and the likelihood for collisions
-		boxX.size.do( { |i| drawCell.value(coords[boxX[i]], coords[boxY[i]], Color.black, 5) }) ;
+		boxX.size.do( { |i| drawCell.value(boxX[i], boxY[i], Color.black, 5) }) ;
 
 		// Add new coordinate values to arrays that track the paths of each track's cell
 		hxArray = hxArray.add(x1);
