@@ -595,7 +595,7 @@ var rate = 0;
 h.set(\freq, ~harmonypitch_array[~counter], \sustainTime, 0.5);
 
 // Create Grid
-w = Window("Grid", Rect(
+w = Window("PacMan Music", Rect(
 	(Window.screenBounds.width/2)-(width/2),
 	(Window.screenBounds.height/2),
 	width,
