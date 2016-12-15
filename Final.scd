@@ -10,7 +10,22 @@ Bass : Randomly generated | Chaos
 Percussion: Randomly generated | Cellular Automata
 Harmony: Transposition of Melody
 
+
+
+There are 5 blocks of code that must be executed (the order does not matter as long as the GUI is last)
+
+1. Console [where the user indicates the initial positions of the 4 track cells]
+2. SynthDefs
+3. Bass track creation
+4. Percussion track creation
+5. GUI creation [run the actual game]
+
+***between the bass and percussion blocks, there is a Pbind for playing the bass track on its own, in case you
+         want to listen to it
+
 */
+
+
 
 /////////////////////////CONSOLE///////////////////////////
 // This block of code creates the console for selecting the 4 track's cells' initial coordinates on the grid
@@ -92,9 +107,6 @@ b = Button.new(x,Rect(155,320,90,30))
 
 
 
-
-
-
 /////////////////////////SYNTHS///////////////////////////
 (
 ~noteArray = [60];
@@ -139,7 +151,7 @@ SynthDef(\drums, {|out = 0, bassLevel = 0 , snareLevel = 0, hatLevel = 0, tomLev
 	Out.ar(out, mixer);
 }).store;
 
-//New bass synthdef
+//Bass synthdef
 SynthDef(\ixibass, {arg out=0, amp=0.3, t_trig=1, freq=60, rq=0.004, sustainTime=0.5;
 	var env, signal;
 	var rho, theta, b1, b2;
@@ -147,12 +159,12 @@ SynthDef(\ixibass, {arg out=0, amp=0.3, t_trig=1, freq=60, rq=0.004, sustainTime
 	b2 = 0.998057.neg;
 	signal = SOS.ar(K2A.ar(t_trig), 0.123, 0.0, 0.0, b1, b2);
 	signal = RHPF.ar(signal, freq.midicps, rq) + RHPF.ar(signal, freq.midicps, rq);
-	// signal = signal * EnvGen.ar(Env.adsr(0.01, 0.3, sustainTime, 1));
 	signal = signal * EnvGen.ar(Env.sine(sustainTime));
 	DetectSilence.ar(signal, 0.01, doneAction:2);
 	Out.ar(out, signal*(amp*0.45)!2);
 }).store;
 )
+
 
 
 /////////////////////////////BASS//////////////////////////////
@@ -178,25 +190,24 @@ while({currentTime < 400}, {
 	while ({currentTime < nextTime},
 		{~bassDurations = ~bassDurations.add(currentDur);
 			currentTime = currentTime + currentDur;
-		});
+	});
 	timeIndex = timeIndex + 1;
 	currentDur = bifurcationDurations[timeIndex];
 	nextTime = bifurcationTimes[timeIndex];
 });
-// ~bassDurations.postln;
+
 ~bassDurations = ~bassDurations / 4; //divide it by 4 because 1 actually equals a whole note, not a quarter note
 durSize = ~bassDurations.size;
-// durSize.postln;
 
 while ({notesIndex < durSize},
 	{~bassNotes = ~bassNotes.add([60, 65, 67].choose);
 		notesIndex = notesIndex + 1;
 });
-
-~bassNotes.postln;
-~bassDurations.postcs;
 )
 
+
+
+// DOES NOT NEED TO BE RUN
 (
 //Pbind to play the composition above outside of the game.
 //Easier to hear separate from the GUI/game, which doesn't end up playing all of the notes because of the framerate.
@@ -212,6 +223,7 @@ Pbind(
 	\amp, 1
 ).play;
 )
+
 
 
 ////////////////////PERCUSSION////////////////////////
@@ -235,7 +247,6 @@ var index = 0;
 ~hatLevel;
 ~tomLevel;
 ~rules = [];
-generations.postln;
 
 //generate rules
 while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
@@ -249,16 +260,12 @@ while ({iterateRuleArray < 4}, //one rule for each of 00, 01, 10, and 11
 		iterateRuleArray = iterateRuleArray + 1;
 	}
 );
-~rules.postln;
 
 //generate initial state for drumNotes array
-
 while ({iterateDrumNotes < 240}, //4 minutes of music
 	{~drumNotes = ~drumNotes.add(rrand(0, 1));
 		iterateDrumNotes = iterateDrumNotes + 1;
 });
-
-~drumNotes.postln;
 
 //do rules for random number of generations
 while ({currGen < generations},
@@ -294,19 +301,12 @@ while ({currGen < generations},
 			~drumNotes.put(index + 1, currRule[1]);
 			index = index + 1;
 		});
-		"Generation ".post;
-		currGen.post;
-		" ".post;
-		~drumNotes.postln;
 		currGen = currGen + 1;
 });
 
 ~bassLevel = ~drumNotes;
-~bassLevel.postln;
-~snareLevel.postln;
-~hatLevel.postln;
-~tomLevel.postln;
 )
+
 
 
 //////////////////////////GUI///////////////////////
@@ -376,7 +376,7 @@ var drawCell = { | x, y, color, ind |
 	);
 	Pen.color = color;
 	Pen.fillRect(Rect(cell[\x] - cell[\size], cell[\y] - cell[\size], cell[\size] * 2, cell[\size] * 2));
-~endmusic == false;
+	~endmusic == false;
 
 	// Add tab to respective cells to indicate which track it represents (harmony, melody, etc.)
 	Pen.strokeColor = Color.black;
@@ -425,11 +425,11 @@ var gameOver = {
 
 var checkCollisions = {arg x,  y;
 	//check if melody coords.
-	if((x == x1) && (y == y1), {"1onsame".postln; gameOver.value()},{ });
+	if((x == x1) && (y == y1), { gameOver.value()},{ });
 
-	if((x == x2) && (y == y2), {"2onsame".postln; gameOver.value()},{ });
+	if((x == x2) && (y == y2), { gameOver.value()},{ });
 
-	if((x == x3) && (y == y3), {"3onsame".postln; gameOver.value()},{ });
+	if((x == x3) && (y == y3), { gameOver.value()},{ });
 
 };
 
@@ -509,7 +509,6 @@ var melodySong =  {arg input;
 		~noteArray = ~noteArray ++ note[0];
 		~harmony_array = ~harmony_array ++ l_sys_rule[0];
 		~counter = ~counter + 1;
-		"moved down".postln;
 	});
 
 	if(l_sys_rule[0] == 126, {
@@ -517,7 +516,6 @@ var melodySong =  {arg input;
 		~noteArray = ~noteArray ++ note[0];
 		~harmony_array = ~harmony_array ++ l_sys_rule[0];
 		~counter = ~counter + 1;
-		"moved up".postln;
 	});
 
 	if(l_sys_rule[0] == 123, {
@@ -525,7 +523,6 @@ var melodySong =  {arg input;
 		~noteArray = ~noteArray ++ note[0];
 		~harmony_array = ~harmony_array ++ l_sys_rule[0];
 		~counter = ~counter + 1;
-		"moved left".postln;
 	});
 
 	if(l_sys_rule[0] == 124, {
@@ -533,7 +530,6 @@ var melodySong =  {arg input;
 		~noteArray = ~noteArray ++ note[0];
 		~harmony_array = ~harmony_array ++ l_sys_rule[0];
 		~counter = ~counter + 1;
-		"moved right".postln;
 	});
 
 	s = Synth(\mario);
@@ -541,7 +537,6 @@ var melodySong =  {arg input;
 
 	//Create the harmony pitches by transposing the melody array left 2
 	~harmonypitch_array = ~harmonypitch_array ++ ~noteArray[~counter-2];
-	~harmonypitch_array.postln;
 
 };
 
@@ -562,24 +557,21 @@ var moveHarmony = { |coords|
 var checkBlackBox = {arg x,  y, key;
 	//check if melody coords. are about to collide with black box
 	var move = true;
-	"in check".postln;
-	x.postln;
-	y.postln;
-	if((x == boxX[0]) && (y == boxY[0]), {"don't touch".postln; move = false;});
+	if((x == boxX[0]) && (y == boxY[0]), { move = false;});
 
-	if((x == boxX[1]) && (y == boxY[1]), {"don't touch".postln; move = false;});
+	if((x == boxX[1]) && (y == boxY[1]), { move = false;});
 
-	if((x == boxX[2]) && (y == boxY[2]), {"don't touch".postln; move = false;});
+	if((x == boxX[2]) && (y == boxY[2]), { move = false;});
 
-	if((x == boxX[3]) && (y == boxY[3]), {"don't touch".postln; move = false;});
+	if((x == boxX[3]) && (y == boxY[3]), { move = false;});
 
-	if((x == boxX[4]) && (y == boxY[4]), {"don't touch".postln; move = false;});
+	if((x == boxX[4]) && (y == boxY[4]), { move = false;});
 
-	if((x == boxX[5]) && (y == boxY[5]), {"don't touch".postln; move = false;});
+	if((x == boxX[5]) && (y == boxY[5]), { move = false;});
 
-	if((x == boxX[6]) && (y == boxY[6]), {"don't touch".postln; move = false;});
+	if((x == boxX[6]) && (y == boxY[6]), { move = false;});
 
-	if((x == boxX[7]) && (y == boxY[7]), {"don't touch".postln; move = false;});
+	if((x == boxX[7]) && (y == boxY[7]), { move = false;});
 
 	if (move == true, {moveMelody.value(key);});
 };
@@ -587,7 +579,6 @@ var checkBlackBox = {arg x,  y, key;
 var moveMelody = {arg key;
 	//check if melody coords. are about to collide with black box
 	var newP = ~noteArray[~counter];
-		"moveMelody".postln;
 	case
 	{ key == 123 } {x4 = coords[ (coords.indexOf(x4) - 1) % 9 ]; melodySong.(123); moveHarmony.value(coords);
 		s.set(\freq, newP, \sustainTime, rrand(0.1, 0.5)) }
@@ -652,7 +643,7 @@ v.drawFunc = {
 		});
 
 		boxX.size.do( { |i| if( (mCount == 0 && boxX[i] == x4 && boxY[i] == y4),
-			{ boxX.removeAt(i); boxY.removeAt(i); boxX.postln; boxY.postln } ) });
+			{ boxX.removeAt(i); boxY.removeAt(i) } ) });
 
 		// Creates a series of black cells to increase grid occupancy and the likelihood for collisions
 		boxX.size.do( { |i| drawCell.value(boxX[i], boxY[i], Color.black, 5) }) ;
@@ -738,19 +729,18 @@ v.drawFunc = {
 		case
 		{ bCount == 0 }  { }
 		{ (bPitch[bCount - 1] < bPitch[bCount]) && ((bPitch[bCount] - bPitch[bCount - 1]) < 3) }
-		{ x2 = coords[ (coords.indexOf(x2) + 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount]; ~bassDurations[bCount].postln ); }
+		{ x2 = coords[ (coords.indexOf(x2) + 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount] ) }
 		{ bPitch[bCount - 1] < bPitch[bCount] }
-		{ y2 = coords[ (coords.indexOf(y2) + 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount]; ~bassDurations[bCount].postln ); }
+		{ y2 = coords[ (coords.indexOf(y2) + 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount] ) }
 		{ bPitch[bCount - 1] > bPitch[bCount] && ((bPitch[bCount - 1] - bPitch[bCount]) < 3) }
-		{ x2 = coords[ (coords.indexOf(x2) - 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount]; ~bassDurations[bCount].postln ); }
+		{ x2 = coords[ (coords.indexOf(x2) - 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount] ) }
 		{ bPitch[bCount - 1] > bPitch[bCount] }
-		{ y2 = coords[ (coords.indexOf(y2) - 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount]; ~bassDurations[bCount].postln); };
+		{ y2 = coords[ (coords.indexOf(y2) - 1) % 9 ]; e.set(\freq, bPitch[bCount], \sustainTime, ~bassDurations[bCount] ) };
 
 		bCount = (bCount + 1) % bPitch.size;
 
 
 		m = Synth(\drums);
-		// if (~endmusic == true, {m.free; e.free; s.free; h.free});
 
 		// Determine the new coordinate for the percussion cell based on rest vs. beat
 		~drumCounter = 0;
@@ -764,6 +754,4 @@ v.drawFunc = {
 		pCount = (pCount + 1) % pPitch.size;
 	};
 };
-
-
 )
