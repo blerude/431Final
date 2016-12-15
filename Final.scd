@@ -1,7 +1,16 @@
-//team Ben, Erika, Devin, Alex 11/28/16 :D
+//team Ben, Erika, Devin, Alex 11/28/16
 
+/* "Pac Man Music"
+The goal of our project was to encompass the major algorithms we covered over the semester and implement them in
+a user-controlled interface (GUI). Symbolically, each element of our "pac man" inspired game represents a different algorithm
+as follows:
 
-// *****Alright, some comments to hopefully clarify what's going on:
+Melody : User-controlled | Based on sets of L-systems
+Bass : Randomly generated | Chaos
+Percussion: Randomly generated | Cellular Automata
+Harmony: Transposition of Melody
+
+*/
 
 /////////////////////////CONSOLE///////////////////////////
 // This block of code creates the console for selecting the 4 track's cells' initial coordinates on the grid
@@ -428,7 +437,6 @@ var checkCollisions = {arg x,  y;
 var melodySong =  {arg input;
 	/*
 	L-System to determine note played when key stroke is moved one of four directions
-	U, D, L R : Up, down, left, right commands inputted from HID
 	A, B, C, D : set of L-System rules for each direction
 	*/
 
@@ -495,6 +503,7 @@ var melodySong =  {arg input;
 
 	l_sys_rule = l_sys_rule ++ input;
 
+	//based on the direction inputted, add the note chosen by the L-system to be played by melody and played 2 beats later by harmony
 	if(l_sys_rule[0] == 125, {
 		note = note ++ nextA.(~noteArray[~counter]);
 		~noteArray = ~noteArray ++ note[0];
@@ -530,12 +539,13 @@ var melodySong =  {arg input;
 	s = Synth(\mario);
 	h = Synth(\mario);
 
+	//Create the harmony pitches by transposing the melody array left 2
 	~harmonypitch_array = ~harmonypitch_array ++ ~noteArray[~counter-2];
 	~harmonypitch_array.postln;
 
 };
 
-
+//Just like the pitches, harmony square movements are two behind the melody
 var moveHarmony = { |coords|
 	case
 	{ ~counter == 0 }  { }
