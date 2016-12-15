@@ -1,16 +1,9 @@
 //team Ben, Erika, Devin, Alex 11/28/16 :D
 
 
-// TODO:
-// 2. sync melody-harmony rules    [this is tymysports' job]
-//4. black box conflicts
-// Make it look good
-
-
-
 // *****Alright, some comments to hopefully clarify what's going on:
 
-
+/////////////////////////CONSOLE///////////////////////////
 // This block of code creates the console for selecting the 4 track's cells' initial coordinates on the grid
 // It should be executed first in order to get those locations, before the later actual interface code block
 //   is run. Users can input the row and column of each cell by entering a number between 1 and 9. If they
@@ -24,7 +17,7 @@ x = Window.new("Placement Selections", Rect(0, 0, 420, 370), false).front;
 // These commands create the text blocks on the console that instruct users.
 StaticText.new(x, Rect(85,0,250,30)).string_("MAKE CELL PLACEMENT SELECTIONS");
 StaticText.new(x, Rect(135,0,150,80)).string_("To select a starting cell,");
-StaticText.new(x, Rect(40,0,340,110)).string_("enter a number within the 1-9 range into the text box.");
+StaticText.new(x, Rect(40,0,360,110)).string_("enter a number within the 1-9 range into the text box.");
 StaticText.new(x, Rect(135,0,150,140)).string_("If the input is not valid,");
 StaticText.new(x, Rect(90,0,240,170)).string_("one will be randomly selected for you.");
 StaticText.new(x, Rect(80,0,260,210)).string_("NOTE: Coordinate pairs must be distinct!");
@@ -95,7 +88,6 @@ b = Button.new(x,Rect(155,320,90,30))
 
 /////////////////////////SYNTHS///////////////////////////
 (
-//plz initialize once
 ~noteArray = [60];
 ~counter = 0;
 
@@ -155,6 +147,10 @@ SynthDef(\ixibass, {arg out=0, amp=0.3, t_trig=1, freq=60, rq=0.004, sustainTime
 
 
 /////////////////////////////BASS//////////////////////////////
+/* The rhythm of the bass is modeled after the bifurcation diagram (graph of the attracting points)
+of the logistic map (x' = rx(1 - x)), with r changing values from 0 - 4. Since chaos does not arise until
+r = 3.4, we only looked at r = 2 through r =4. The composition lasts 50 measures.
+*/
 (
 //GENERATING BASS
 var currentTime = 200;
@@ -179,7 +175,7 @@ while({currentTime < 400}, {
 	nextTime = bifurcationTimes[timeIndex];
 });
 // ~bassDurations.postln;
-~bassDurations = ~bassDurations / 4;
+~bassDurations = ~bassDurations / 4; //divide it by 4 because 1 actually equals a whole note, not a quarter note
 durSize = ~bassDurations.size;
 // durSize.postln;
 
@@ -192,10 +188,30 @@ while ({notesIndex < durSize},
 ~bassDurations.postcs;
 )
 
+(
+//Pbind to play the composition above outside of the game.
+//Easier to hear separate from the GUI/game, which doesn't end up playing all of the notes because of the framerate.
+
+Pbind(
+	\instrument, \bass,
+	\freq, Pseq(~bassNotes, 1),
+	\dur, Pseq(~bassDurations, 1),
+	\sustain, Pseq(~bassDurations, 1),
+	\octave, 4,
+	\ctranspose, 5,
+	\scale, [0, 2, 4, 5, 7, 9, 11],
+	\amp, 1
+).play;
+)
+
 
 ////////////////////PERCUSSION////////////////////////
+/* Percussion generated using one dimensional cellular automata.  Rules for each of the 4 2-bit binary numbers
+are generated randomly and then applied to a randomly generated array of 0s and 1s some number of times
+(4 - 10 generations). If the number of generations = n, bassLevel = array n, tomLevel = array at n - 1, hatLevel
+= array at n - 2, and snareLevel = array at n - 3.
+*/
 (
-//Generating Percussion Using Cellular Automata
 var iterateRuleArray = 0;
 var iterateRule;
 var currRule = [];
@@ -237,7 +253,7 @@ while ({iterateDrumNotes < 240}, //4 minutes of music
 
 //do rules for random number of generations
 while ({currGen < generations},
-	{//update snareLevel, hatLevel, and tomLevel?
+	{//update snareLevel, hatLevel, and tomLevel
 		if (currGen == (generations - 3),
 			{~snareLevel = Array.newFrom(~drumNotes);});
 		if (currGen == (generations - 2),
@@ -282,8 +298,6 @@ while ({currGen < generations},
 ~hatLevel.postln;
 ~tomLevel.postln;
 )
-
-
 
 
 //////////////////////////GUI///////////////////////
@@ -678,7 +692,7 @@ v.drawFunc = {
 		melody = drawCell.value(x4, y4, c4, 3);
 
 
-		// Draw the Y insignia on each track's cell, for fun      -\_( '-' )_/-
+		// Draw the Y insignia on each track's cell, for fun   ¯\_(ツ)_/¯
 		track = 0;
 		while( { track < 4 }, {
 			case
@@ -708,28 +722,6 @@ v.drawFunc = {
 
 			track = track + 1;
 		});
-
-
-		// THESE SHOULD BE CALLED ONLY WHEN DURATION CHANGES:
-
-		// Determine the new coordinate for the harmony cell based on pitch relationships
-
-		//
-		/*		{ hCount == 0 }  { }
-		{ (hPitch[hCount - 1] < hPitch[hCount]) && ((hPitch[hCount] - hPitch[hCount - 1]) < 3) }
-		{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]} // X moves to the right
-		{ hPitch[hCount - 1] < hPitch[hCount] }
-		{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ] } // Y moves up
-		{ hPitch[hCount - 1] > hPitch[hCount] && ((hPitch[hCount - 1] - hPitch[hCount]) < 3) }
-		{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ] } // X moves to the left
-		{ hPitch[hCount - 1] > hPitch[hCount] }
-		{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ] }; // Y moves down
-
-		hCount = (hCount + 1) % hPitch.size;*/
-
-		/*		hCount = (hCount + 1) % ~harmony_array.size;
-		("h: " + hCount).postln;
-		~counter.postln;*/
 
 		e = Synth(\ixibass);
 		// Determine the new coordinate for the bass cell based on pitch relationships
@@ -764,20 +756,4 @@ v.drawFunc = {
 };
 
 
-)
-
-(
-//Chaotic Bass Thing.
-//Easier to hear separate from the GUI/game, which doesn't end up playing all of the notes because of the framerate
-
-Pbind(
-	\instrument, \bass,
-	\degree, Pseq(~bassNotes, 1),
-	\dur, Pseq(~bassDurations, 1),
-	\sustain, Pseq(~bassDurations, 1),
-	\octave, 4,
-	\ctranspose, 5,
-	\scale, [0, 2, 4, 5, 7, 9, 11],
-	\amp, 0.25
-).play;
 )
