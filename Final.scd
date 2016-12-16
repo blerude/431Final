@@ -36,7 +36,7 @@ There are 5 blocks of code that must be executed (the order does not matter as l
 //   the responses are assigned to variables.
 (
 // Create interactive console for users to select initial cell configurations
-x = Window.new("Placement Selections", Rect(0, 0, 420, 370), false).front;
+x = Window.new("Placement Selections", Rect(0, 0, 420, 320), false).front;
 
 // These commands create the text blocks on the console that instruct users.
 StaticText.new(x, Rect(85,0,250,30)).string_("MAKE CELL PLACEMENT SELECTIONS");
@@ -54,26 +54,20 @@ StaticText.new(x, Rect(110,0,50,270)).string_("X Value:");
 StaticText.new(x, Rect(250,0,50,270)).string_("Y Value:");
 ~my = TextField(x,Rect(310,120,50,30));
 
-StaticText.new(x, Rect(20,0,180,370)).string_("Harmony:");
+StaticText.new(x, Rect(20,0,180,370)).string_("Bass:");
 StaticText.new(x, Rect(110,0,50,370)).string_("X Value:");
-~hx = TextField(x,Rect(170,170,50,30));
+~bx = TextField(x,Rect(170,170,50,30));
 StaticText.new(x, Rect(250,0,50,370)).string_("Y Value:");
-~hy = TextField(x,Rect(310,170,50,30));
+~by = TextField(x,Rect(310,170,50,30));
 
-StaticText.new(x, Rect(20,0,180,470)).string_("Bass:");
+StaticText.new(x, Rect(20,0,180,470)).string_("Percussion:");
 StaticText.new(x, Rect(110,0,50,470)).string_("X Value:");
-~bx = TextField(x,Rect(170,220,50,30));
+~px = TextField(x,Rect(170,220,50,30));
 StaticText.new(x, Rect(250,0,50,470)).string_("Y Value:");
-~by = TextField(x,Rect(310,220,50,30));
-
-StaticText.new(x, Rect(20,0,180,570)).string_("Percussion:");
-StaticText.new(x, Rect(110,0,50,570)).string_("X Value:");
-~px = TextField(x,Rect(170,270,50,30));
-StaticText.new(x, Rect(250,0,50,570)).string_("Y Value:");
-~py = TextField(x,Rect(310,270,50,30));
+~py = TextField(x,Rect(310,220,50,30));
 
 // This button locks the responses in by saving the entered text from each box to global variables
-b = Button.new(x,Rect(155,320,90,30))
+b = Button.new(x,Rect(155,270,90,30))
 .states_([["DONE"]])
 .action_(  {
 	// Save responses to x and y variables for each track; if response is invalid, choose random entry
@@ -81,10 +75,8 @@ b = Button.new(x,Rect(155,320,90,30))
 		{ ~mxval = ~mx.value.asInteger }, { ~mxval = rrand(1, 9) } );
 	if ((~my.value.asInteger > 0) && (~my.value.asInteger < 16),
 		{ ~myval = ~my.value.asInteger }, { ~myval = rrand(1, 9) } );
-	if ((~hx.value.asInteger > 0) && (~hx.value.asInteger < 16),
-		{ ~hxval = ~hx.value.asInteger }, { ~hxval = rrand(1, 9) } );
-	if ((~hy.value.asInteger > 0) && (~hy.value.asInteger < 16),
-		{ ~hyval = ~hy.value.asInteger }, { ~hyval = rrand(1, 9) } );
+	~hxval = ~mxval + 2;   // Harmony depends on melody so that it can chase it
+	~hyval = ~myval;
 	if ((~bx.value.asInteger > 0) && (~bx.value.asInteger < 16),
 		{ ~bxval = ~bx.value.asInteger }, { ~bxval = rrand(1, 9) } );
 	if ((~by.value.asInteger > 0) && (~by.value.asInteger < 16),
@@ -363,7 +355,7 @@ var c1 = Color.rand; // each box is given a random color
 var c2 = Color.rand;
 var c3 = Color.rand;
 var c4 = Color.blue;
-var boxX = [ 24, 148, 190, 358, 22, 316, 358, 148 ]; // Barrier cell x indices
+var boxX = [ 22, 148, 190, 358, 22, 316, 358, 148 ]; // Barrier cell x indices
 var boxY = [ 64, 190, 232, 316, 64, 106, 148, 358 ]; // Barrier cell y indices
 
 // This function creates the cells using the coordinates and color assigned
@@ -543,14 +535,14 @@ var melodySong =  {arg input;
 //Just like the pitches, harmony square movements are two behind the melody
 var moveHarmony = { |coords|
 	case
-	{ ~counter == 0 }  { }
-	{ ~harmony_array[~counter] == 124 }
+	{ ~counter == 0 } { }
+	{ x4 > x1 }
 	{ x1 = coords[ (coords.indexOf(x1) + 1) % 9 ]; } // X moves to the right
-	{ ~harmony_array[~counter] == 125 }
+	{ y4 > y1 }
 	{ y1 = coords[ (coords.indexOf(y1) + 1) % 9 ];  } // Y moves up
-	{ ~harmony_array[~counter] == 123 }
+	{ x4 < x1 }
 	{ x1 = coords[ (coords.indexOf(x1) - 1) % 9 ]; } // X moves to the left
-	{ ~harmony_array[~counter] == 126}
+	{ y4 < y1 }
 	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ];  }; // Y moves down
 };
 
