@@ -407,6 +407,7 @@ var tracePath = { | xArray, yArray, width, height |
 	} );
 };
 
+// This function ends the game once there is a collision
 var gameOver = {
 	w = Window.new("Game Over", Rect(200,200,255,100));
 	b = Button.new(w,Rect(10,0,80,30)).states_([["Close"]]);
@@ -415,6 +416,7 @@ var gameOver = {
 	w.front;
 };
 
+// This function determines whether melody is sharing a cell with a separate track and calls gameOver if that is the case
 var checkCollisions = {arg x,  y;
 	//check if melody coords.
 	if((x == x1) && (y == y1), { gameOver.value()},{ });
@@ -546,6 +548,7 @@ var moveHarmony = { |coords|
 	{ y1 = coords[ (coords.indexOf(y1) - 1) % 9 ];  }; // Y moves down
 };
 
+// This function checks to make sure that the melody cell does not run into the black barrier boxes
 var checkBlackBox = {arg x,  y, key;
 	//check if melody coords. are about to collide with black box
 	var move = true;
@@ -568,6 +571,7 @@ var checkBlackBox = {arg x,  y, key;
 	if (move == true, {moveMelody.value(key);});
 };
 
+// This function determines the movement of the melody cell and sets the synth to the new pitch
 var moveMelody = {arg key;
 	//check if melody coords. are about to collide with black box
 	var newP = ~noteArray[~counter];
@@ -716,6 +720,7 @@ v.drawFunc = {
 			track = track + 1;
 		});
 
+
 		e = Synth(\ixibass);
 		// Determine the new coordinate for the bass cell based on pitch relationships
 		case
@@ -733,7 +738,6 @@ v.drawFunc = {
 
 
 		m = Synth(\drums);
-
 		// Determine the new coordinate for the percussion cell based on rest vs. beat
 		~drumCounter = 0;
 		case
